@@ -1198,6 +1198,370 @@ function ReviewPage({ businessId, businesses, setPage, addFeedback, isDemo }) {
   );
 }
 
+// ─── Admin Password (change this to something only you know) ─────────────────
+const ADMIN_PASSWORD = "TDS@ReviewShield2026";
+
+// ─── Admin Login Page ─────────────────────────────────────────────────────────
+function AdminLogin({ setPage }) {
+  const [pwd, setPwd] = useState("");
+  const [error, setError] = useState(false);
+  const handleLogin = () => {
+    if (pwd === ADMIN_PASSWORD) { setPage("admin"); setError(false); }
+    else { setError(true); }
+  };
+  return (
+    <div className="auth-page">
+      <div className="auth-card fade-in" style={{ maxWidth: 400 }}>
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>🔐</div>
+          <div className="auth-title">Admin Access</div>
+          <div className="auth-sub">ReviewShield Super Admin</div>
+        </div>
+        <div className="form-group">
+          <label className="form-label">ADMIN PASSWORD</label>
+          <input className="form-input" type="password" placeholder="Enter admin password"
+            value={pwd} onChange={e => { setPwd(e.target.value); setError(false); }}
+            onKeyDown={e => e.key === "Enter" && handleLogin()} />
+          {error && <div style={{ color: "var(--red)", fontSize: 13, marginTop: 6 }}>❌ Wrong password. Try again.</div>}
+        </div>
+        <button className="btn-submit" onClick={handleLogin}>Enter Admin Panel →</button>
+        <div style={{ textAlign: "center", marginTop: 16 }}>
+          <span style={{ fontSize: 13, color: "var(--text2)", cursor: "pointer" }} onClick={() => setPage("home")}>← Back to site</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Admin Dashboard ──────────────────────────────────────────────────────────
+function AdminDashboard({ businesses, setPage }) {
+  const [activeTab, setActiveTab] = useState("overview");
+  const [selectedBiz, setSelectedBiz] = useState(null);
+
+  // Aggregate stats
+  const totalBiz = businesses.length;
+  const totalFeedbacks = businesses.reduce((a, b) => a + b.feedbacks.length, 0);
+  const totalPositives = businesses.reduce((a, b) => a + b.positivesSent, 0);
+  const totalScans = businesses.reduce((a, b) => a + b.totalScans + b.feedbacks.length, 0);
+  const planCounts = { starter: 0, pro: 0, agency: 0 };
+  businesses.forEach(b => { if (planCounts[b.plan] !== undefined) planCounts[b.plan]++; });
+  const mrr = businesses.reduce((a, b) => {
+    const prices = { starter: 999, pro: 2499, agency: 7999 };
+    return a + (prices[b.plan] || 0);
+  }, 0);
+
+  const PLAN_COLOR = { starter: "#6ee7b7", pro: "#fbbf24", agency: "#a78bfa" };
+
+  const NAV = [
+    { id: "overview", icon: "📊", label: "Overview" },
+    { id: "clients", icon: "🏢", label: `All Clients (${totalBiz})` },
+    { id: "feedbacks", icon: "💬", label: `All Feedbacks (${totalFeedbacks})` },
+    { id: "revenue", icon: "💰", label: "Revenue" },
+  ];
+
+  return (
+    <div className="dashboard">
+      {/* Admin Sidebar */}
+      <div className="sidebar">
+        <div style={{ padding: "0 24px 8px" }}>
+          <div style={{ fontFamily: "Syne, sans-serif", fontSize: 16, fontWeight: 800, color: "var(--gold)" }}>ReviewShield</div>
+          <div style={{ fontSize: 11, color: "var(--red)", fontWeight: 700, letterSpacing: 1, marginTop: 2 }}>⚡ SUPER ADMIN</div>
+        </div>
+        <nav className="sidebar-nav" style={{ marginTop: 16 }}>
+          {NAV.map(item => (
+            <div key={item.id} className={`sidebar-item ${activeTab === item.id ? "active" : ""}`} onClick={() => { setActiveTab(item.id); setSelectedBiz(null); }}>
+              <span className="sidebar-item-icon">{item.icon}</span>
+              {item.label}
+            </div>
+          ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <div style={{ padding: "0 16px 12px" }}>
+            <div style={{ fontSize: 12, color: "var(--text2)" }}>Logged in as</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Tarun Gupta</div>
+            <div style={{ fontSize: 11, color: "var(--text2)" }}>tarun@thedesignshore.com</div>
+          </div>
+          <div className="logout-btn" onClick={() => setPage("home")}>
+            <span>🚪</span> Exit Admin
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="main-content">
+
+        {/* OVERVIEW */}
+        {activeTab === "overview" && (
+          <div className="fade-in">
+            <div className="page-title">Admin Overview</div>
+            <div className="page-sub">Your ReviewShield business at a glance — {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</div>
+
+            <div className="stats-grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))" }}>
+              {[
+                { label: "Total Clients", value: totalBiz, color: "gold", icon: "🏢" },
+                { label: "Monthly Revenue", value: `₹${mrr.toLocaleString("en-IN")}`, color: "green", icon: "💰" },
+                { label: "Total Scans", value: totalScans, color: "gold", icon: "📱" },
+                { label: "Sent to Google", value: totalPositives, color: "green", icon: "⭐" },
+                { label: "Captured Private", value: totalFeedbacks, color: "red", icon: "🔒" },
+              ].map((s, i) => (
+                <div className="stat-card" key={i}>
+                  <div className="stat-card-label">{s.icon} {s.label}</div>
+                  <div className={`stat-card-num ${s.color}`}>{s.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Plan breakdown */}
+            <div className="panel">
+              <div className="panel-title">📦 Plan Distribution</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+                {PLANS.map(plan => (
+                  <div key={plan.id} style={{ background: "var(--bg3)", borderRadius: 12, padding: 20, textAlign: "center", border: `1px solid ${plan.color}30` }}>
+                    <div style={{ fontSize: 28, fontWeight: 800, fontFamily: "Syne,sans-serif", color: plan.color }}>{planCounts[plan.id]}</div>
+                    <div style={{ fontSize: 13, color: "var(--text2)", marginTop: 4 }}>{plan.name} clients</div>
+                    <div style={{ fontSize: 12, color: plan.color, marginTop: 4, fontWeight: 600 }}>
+                      ₹{((planCounts[plan.id] || 0) * parseInt(plan.price.replace("₹","").replace(",",""))).toLocaleString("en-IN")}/mo
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Recent signups */}
+            <div className="panel">
+              <div className="panel-title">🆕 Recent Signups</div>
+              {businesses.slice(-3).reverse().map((b, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0", borderBottom: i < 2 ? "1px solid var(--border)" : "none", flexWrap: "wrap", gap: 8 }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>{b.name}</div>
+                    <div style={{ fontSize: 12, color: "var(--text2)" }}>{b.email} · Joined {b.createdAt}</div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <span style={{ fontSize: 11, padding: "3px 10px", background: `${PLAN_COLOR[b.plan]}15`, border: `1px solid ${PLAN_COLOR[b.plan]}40`, color: PLAN_COLOR[b.plan], borderRadius: 100, fontWeight: 700 }}>{b.plan.toUpperCase()}</span>
+                    <button onClick={() => { setSelectedBiz(b); setActiveTab("clients"); }} style={{ fontSize: 12, padding: "4px 12px", border: "1px solid var(--border)", borderRadius: 8, background: "var(--card)", color: "var(--text2)", cursor: "pointer", fontFamily: "DM Sans,sans-serif" }}>View →</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ALL CLIENTS */}
+        {activeTab === "clients" && !selectedBiz && (
+          <div className="fade-in">
+            <div className="page-title">All Clients</div>
+            <div className="page-sub">{totalBiz} businesses enrolled on ReviewShield</div>
+
+            {/* Filters */}
+            <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+              {["All", "Starter", "Pro", "Agency"].map(f => (
+                <button key={f} style={{ padding: "6px 16px", borderRadius: 100, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text2)", fontSize: 13, cursor: "pointer", fontFamily: "DM Sans,sans-serif" }}>{f}</button>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {businesses.map((b, i) => (
+                <div key={i} style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 14, padding: "18px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, cursor: "pointer" }} onClick={() => setSelectedBiz(b)}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: `${PLAN_COLOR[b.plan]}15`, border: `1px solid ${PLAN_COLOR[b.plan]}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>🏢</div>
+                    <div>
+                      <div style={{ fontSize: 15, fontWeight: 600 }}>{b.name}</div>
+                      <div style={{ fontSize: 12, color: "var(--text2)" }}>{b.email} · {b.phone}</div>
+                      <div style={{ fontSize: 12, color: "var(--text2)", marginTop: 2 }}>Joined {b.createdAt}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 18, fontWeight: 800, fontFamily: "Syne,sans-serif", color: "var(--green)" }}>{b.positivesSent}</div>
+                      <div style={{ fontSize: 11, color: "var(--text2)" }}>To Google</div>
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 18, fontWeight: 800, fontFamily: "Syne,sans-serif", color: "var(--red)" }}>{b.feedbacks.length}</div>
+                      <div style={{ fontSize: 11, color: "var(--text2)" }}>Captured</div>
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 18, fontWeight: 800, fontFamily: "Syne,sans-serif", color: "var(--gold)" }}>{b.totalScans + b.feedbacks.length}</div>
+                      <div style={{ fontSize: 11, color: "var(--text2)" }}>Scans</div>
+                    </div>
+                    <span style={{ fontSize: 11, padding: "4px 12px", background: `${PLAN_COLOR[b.plan]}15`, border: `1px solid ${PLAN_COLOR[b.plan]}40`, color: PLAN_COLOR[b.plan], borderRadius: 100, fontWeight: 700 }}>{b.plan.toUpperCase()}</span>
+                    <span style={{ fontSize: 12, color: "var(--text2)" }}>→</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* CLIENT DETAIL */}
+        {activeTab === "clients" && selectedBiz && (
+          <div className="fade-in">
+            <button onClick={() => setSelectedBiz(null)} style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: 14, marginBottom: 20, fontFamily: "DM Sans,sans-serif" }}>← Back to all clients</button>
+            <div className="page-title">{selectedBiz.name}</div>
+            <div className="page-sub">{selectedBiz.email} · {selectedBiz.phone} · Joined {selectedBiz.createdAt}</div>
+
+            <div className="stats-grid">
+              {[
+                { label: "Plan", value: selectedBiz.plan.toUpperCase(), color: "gold" },
+                { label: "Sent to Google", value: selectedBiz.positivesSent, color: "green" },
+                { label: "Captured Private", value: selectedBiz.feedbacks.length, color: "red" },
+                { label: "Total Scans", value: selectedBiz.totalScans + selectedBiz.feedbacks.length, color: "gold" },
+              ].map((s, i) => (
+                <div className="stat-card" key={i}>
+                  <div className="stat-card-label">{s.label}</div>
+                  <div className={`stat-card-num ${s.color}`}>{s.value}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="panel">
+              <div className="panel-title">🔗 Review Link</div>
+              <div className="qr-url-box">https://reviewshield.in/r/{selectedBiz.id}</div>
+            </div>
+
+            <div className="panel">
+              <div className="panel-title">💬 Their Private Feedbacks</div>
+              {selectedBiz.feedbacks.length === 0 ? (
+                <div style={{ color: "var(--text2)", fontSize: 14 }}>No negative feedback captured yet.</div>
+              ) : (
+                <div className="feedback-list">
+                  {selectedBiz.feedbacks.map((f, i) => (
+                    <div key={i} className="feedback-item">
+                      <div className="feedback-header">
+                        <div style={{ display: "flex", gap: 3 }}>{[1,2,3,4,5].map(s => <span key={s} style={{ opacity: s <= f.rating ? 1 : 0.2 }}>⭐</span>)}</div>
+                        <div style={{ display: "flex", gap: 12 }}>
+                          <span className="feedback-name">{f.name}</span>
+                          <span className="feedback-date">{f.date}</span>
+                        </div>
+                      </div>
+                      <div className="feedback-msg">"{f.message}"</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Admin Actions */}
+            <div className="panel">
+              <div className="panel-title">⚙️ Admin Actions</div>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                {["Suspend Account", "Change to Pro", "Change to Agency", "Send Email", "Reset QR Link"].map((action, i) => (
+                  <button key={i} onClick={() => alert(`Action: ${action} for ${selectedBiz.name}`)}
+                    style={{ padding: "10px 18px", borderRadius: 10, border: "1px solid var(--border)", background: i === 0 ? "rgba(239,68,68,0.1)" : "var(--card)", color: i === 0 ? "var(--red)" : "var(--text2)", cursor: "pointer", fontSize: 13, fontFamily: "DM Sans,sans-serif" }}>
+                    {action}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ALL FEEDBACKS */}
+        {activeTab === "feedbacks" && (
+          <div className="fade-in">
+            <div className="page-title">All Private Feedbacks</div>
+            <div className="page-sub">Every captured review across all clients — {totalFeedbacks} total</div>
+            {businesses.every(b => b.feedbacks.length === 0) ? (
+              <div className="panel" style={{ textAlign: "center", padding: 60 }}>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
+                <div style={{ fontFamily: "Syne,sans-serif", fontSize: 20, fontWeight: 700 }}>No feedbacks yet</div>
+                <div style={{ color: "var(--text2)", marginTop: 8 }}>Shield is working perfectly.</div>
+              </div>
+            ) : (
+              businesses.map(b => b.feedbacks.length > 0 && (
+                <div key={b.id} style={{ marginBottom: 24 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text2)", marginBottom: 10, display: "flex", alignItems: "center", gap: 10 }}>
+                    🏢 {b.name}
+                    <span style={{ fontSize: 11, padding: "2px 8px", background: "var(--card)", borderRadius: 100, border: "1px solid var(--border)" }}>{b.feedbacks.length} reviews</span>
+                  </div>
+                  <div className="feedback-list">
+                    {b.feedbacks.map((f, i) => (
+                      <div key={i} className={`feedback-item ${!f.read ? "unread" : ""}`}>
+                        <div className="feedback-header">
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <div style={{ display: "flex", gap: 2 }}>{[1,2,3,4,5].map(s => <span key={s} style={{ opacity: s <= f.rating ? 1 : 0.2, fontSize: 14 }}>⭐</span>)}</div>
+                            {!f.read && <span className="badge-new">NEW</span>}
+                          </div>
+                          <div style={{ display: "flex", gap: 12 }}>
+                            <span className="feedback-name">{f.name}</span>
+                            <span className="feedback-date">{f.date}</span>
+                          </div>
+                        </div>
+                        <div className="feedback-msg">"{f.message}"</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* REVENUE */}
+        {activeTab === "revenue" && (
+          <div className="fade-in">
+            <div className="page-title">Revenue Dashboard</div>
+            <div className="page-sub">Your ReviewShield MRR overview</div>
+
+            <div className="stats-grid">
+              {[
+                { label: "Monthly Recurring Revenue", value: `₹${mrr.toLocaleString("en-IN")}`, color: "green" },
+                { label: "Annual Run Rate", value: `₹${(mrr * 12).toLocaleString("en-IN")}`, color: "gold" },
+                { label: "Paying Clients", value: totalBiz, color: "gold" },
+                { label: "Avg Revenue / Client", value: totalBiz > 0 ? `₹${Math.round(mrr / totalBiz).toLocaleString("en-IN")}` : "₹0", color: "green" },
+              ].map((s, i) => (
+                <div className="stat-card" key={i}>
+                  <div className="stat-card-label">{s.label}</div>
+                  <div className={`stat-card-num ${s.color}`}>{s.value}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="panel">
+              <div className="panel-title">💰 Revenue by Plan</div>
+              {PLANS.map(plan => {
+                const count = planCounts[plan.id] || 0;
+                const rev = count * parseInt(plan.price.replace("₹","").replace(",",""));
+                const pct = mrr > 0 ? Math.round((rev / mrr) * 100) : 0;
+                return (
+                  <div key={plan.id} style={{ marginBottom: 16 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: plan.color }}>{plan.name}</span>
+                      <span style={{ fontSize: 14 }}>₹{rev.toLocaleString("en-IN")}/mo · {count} clients · {pct}%</span>
+                    </div>
+                    <div style={{ height: 8, background: "var(--bg3)", borderRadius: 100, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${pct}%`, background: plan.color, borderRadius: 100, transition: "width 0.6s ease" }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="panel">
+              <div className="panel-title">🎯 Growth Targets</div>
+              {[
+                { target: "10 clients", revenue: "₹24,990/mo", status: totalBiz >= 10 },
+                { target: "25 clients", revenue: "₹62,475/mo", status: totalBiz >= 25 },
+                { target: "50 clients", revenue: "₹1,24,950/mo", status: totalBiz >= 50 },
+                { target: "100 clients", revenue: "₹2,49,900/mo", status: totalBiz >= 100 },
+              ].map((t, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: i < 3 ? "1px solid var(--border)" : "none" }}>
+                  <span style={{ fontSize: 18 }}>{t.status ? "✅" : "⭕"}</span>
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontSize: 14, fontWeight: 600 }}>{t.target}</span>
+                    <span style={{ fontSize: 13, color: "var(--text2)", marginLeft: 8 }}>→ {t.revenue}</span>
+                  </div>
+                  {!t.status && <span style={{ fontSize: 12, color: "var(--text2)" }}>{totalBiz} / {parseInt(t.target)} clients</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
 // ─── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [page, setPage] = useState("home");
@@ -1219,7 +1583,7 @@ export default function App() {
     <>
       <style>{css}</style>
       <div className="app">
-        {!isFullscreen && page !== "dashboard" && (
+        {!isFullscreen && page !== "dashboard" && page !== "admin" && page !== "admin-login" && (
           <Nav page={page} setPage={setPage} currentBusiness={currentBusiness} />
         )}
         {page === "home" && <HomePage setPage={setPage} />}
@@ -1228,6 +1592,8 @@ export default function App() {
         {page === "dashboard" && currentBusiness && (
           <Dashboard currentBusiness={currentBusiness} setPage={setPage} setCurrentBusiness={setCurrentBusiness} />
         )}
+        {page === "admin-login" && <AdminLogin setPage={setPage} />}
+        {page === "admin" && <AdminDashboard businesses={businesses} setPage={setPage} />}
         {page === "review-preview" && (
           <>
             <div style={{ position: "fixed", top: 16, left: 16, zIndex: 1000 }}>
@@ -1243,6 +1609,12 @@ export default function App() {
             </div>
             <ReviewPage isDemo businesses={businesses} setPage={setPage} addFeedback={addFeedback} />
           </>
+        )}
+
+        {/* Hidden admin entry — click logo 5 times on home page */}
+        {page === "home" && (
+          <div style={{ position: "fixed", bottom: 16, right: 16, opacity: 0, width: 40, height: 40, cursor: "pointer" }}
+            onClick={() => setPage("admin-login")} title="Admin" />
         )}
       </div>
     </>
