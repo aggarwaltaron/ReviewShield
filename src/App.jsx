@@ -581,7 +581,7 @@ function HomePage({ setPage }) {
   );
 }
 
-function RegisterPage({ setPage, setCurrentBusiness }) {
+function RegisterPage({ setPage, setCurrentBusiness, setBusinesses }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "", business: "", googleUrl: "", plan: "pro" });
   const [step, setStep] = useState("details"); // details | payment
   const [loading, setLoading] = useState(false);
@@ -609,6 +609,7 @@ function RegisterPage({ setPage, setCurrentBusiness }) {
       STORE.currentBusiness = biz;
       setNewBiz(biz);
       setCurrentBusiness(biz);
+      setBusinesses(prev => [...prev, biz]);
       setLoading(false);
       setStep("payment");
     }, 800);
@@ -1587,7 +1588,7 @@ export default function App() {
           <Nav page={page} setPage={setPage} currentBusiness={currentBusiness} />
         )}
         {page === "home" && <HomePage setPage={setPage} />}
-        {page === "register" && <RegisterPage setPage={setPage} setCurrentBusiness={setCurrentBusiness} />}
+        {page === "register" && <RegisterPage setPage={setPage} setCurrentBusiness={setCurrentBusiness} setBusinesses={setBusinesses} />}
         {page === "login" && <LoginPage setPage={setPage} setCurrentBusiness={setCurrentBusiness} />}
         {page === "dashboard" && currentBusiness && (
           <Dashboard currentBusiness={currentBusiness} setPage={setPage} setCurrentBusiness={setCurrentBusiness} />
