@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 // After setting up Apps Script, paste your Web App URL here:
 const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbwmDWqHWFi9mpQN_hiq2464XTy_uJGh_WiubzieB_XGqr99-QjXr46xlR5JPIXD0_tuWA/exec";
 
-
 // ─── Google Sheets API Functions ─────────────────────────────────────────────
 const SheetDB = {
   // Load all businesses from sheet
@@ -1986,3 +1985,4 @@ export default function App() {
     </>
   );
 }
+
