@@ -245,7 +245,11 @@ function HomePage({setPage}){
           <a onClick={()=>setPage("privacy")} style={{color:"var(--text2)",cursor:"pointer"}}>Privacy Policy</a>
           <a href="mailto:tarun@thedesignshore.com" style={{color:"var(--text2)"}}>Contact Us</a>
         </div>
-        <div>© 2026 ReviewShield · Made in India 🇮🇳</div>
+        <div style={{lineHeight:1.8}}>
+          <div>© 2026 ReviewShield · Made in India 🇮🇳</div>
+          <div style={{fontSize:12,marginTop:4}}>A unit of <strong style={{color:"var(--text)"}}>The Design Shore</strong> · GSTIN available on request</div>
+          <div style={{fontSize:11,marginTop:8,color:"var(--text2)",opacity:0.7}}>Registered office: New Delhi, India · For business: tarun@thedesignshore.com · +91 9911591033</div>
+        </div>
       </footer>
     </div>
   );
@@ -278,13 +282,16 @@ function RegisterPage({setPage,setCurrentBiz,setBizList}){
 
   const selectedPlan=PLANS.find(p=>p.id===form.plan);
 
-  if(step==="payment") return (
+  if(step==="payment") {
+    const waMsg = encodeURIComponent(`Hi Tarun, I just registered on ReviewShield!\n\nName: ${form.name}\nBusiness: ${form.business}\nEmail: ${form.email}\nPlan: ${selectedPlan?.name} (${selectedPlan?.price}/mo)\n\nPlease send me the payment link to activate my account. Thank you!`);
+    const waLink = `https://wa.me/919911591033?text=${waMsg}`;
+    return (
     <div className="auth-page">
       <div className="auth-card fade-in">
-        <div style={{textAlign:"center",marginBottom:28}}>
+        <div style={{textAlign:"center",marginBottom:24}}>
           <div style={{fontSize:48,marginBottom:12}}>✅</div>
           <div className="auth-title">Account Created!</div>
-          <div className="auth-sub">Complete payment to activate your plan</div>
+          <div className="auth-sub">One last step to activate your account</div>
         </div>
         <div style={{background:"var(--bg3)",border:"1px solid var(--border)",borderRadius:14,padding:20,marginBottom:20}}>
           <div style={{fontSize:12,color:"var(--text2)",marginBottom:10,fontWeight:600}}>ORDER SUMMARY</div>
@@ -294,23 +301,33 @@ function RegisterPage({setPage,setCurrentBiz,setBizList}){
           </div>
           <div style={{color:"var(--green)",marginTop:10,fontSize:13,fontWeight:600}}>✓ 14-day free trial included</div>
         </div>
-        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:20}}>
-          {["UPI","GPay","PhonePe","Card","Net Banking"].map(m=>(
-            <span key={m} style={{fontSize:11,padding:"3px 10px",background:"var(--bg3)",border:"1px solid var(--border)",borderRadius:100,color:"var(--text2)"}}>{m}</span>
-          ))}
+
+        <div style={{background:"rgba(245,200,66,0.06)",border:"1px solid rgba(245,200,66,0.25)",borderRadius:12,padding:16,marginBottom:18}}>
+          <div style={{fontSize:13,color:"var(--gold)",fontWeight:600,marginBottom:6}}>📋 How activation works:</div>
+          <div style={{fontSize:13,color:"var(--text2)",lineHeight:1.7}}>
+            <div>1. Click <strong style={{color:"var(--text)"}}>"Get Payment Link"</strong> below</div>
+            <div>2. Our team sends you a secure Razorpay link on WhatsApp</div>
+            <div>3. Pay via UPI, Card, or Net Banking</div>
+            <div>4. Account activated within 30 minutes ✨</div>
+          </div>
         </div>
-        <button className="btn-submit" onClick={()=>alert("Razorpay integration: Add your API key in the code to enable payments.")} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,fontSize:15}}>
-          🔒 Pay {selectedPlan?.price} via Razorpay
-        </button>
-        <div style={{textAlign:"center",marginTop:14,fontSize:12,color:"var(--text2)"}}>256-bit SSL · Powered by Razorpay</div>
-        <div style={{textAlign:"center",marginTop:12}}>
-          <span style={{fontSize:13,color:"var(--gold)",cursor:"pointer",fontWeight:600}} onClick={()=>setPage("dashboard")}>
-            Skip for now → Go to dashboard (trial mode)
-          </span>
+
+        <a href={waLink} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}>
+          <button className="btn-submit" style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,fontSize:15,background:"#25D366",color:"#fff"}}>
+            <span style={{fontSize:18}}>📲</span> Get Payment Link via WhatsApp
+          </button>
+        </a>
+
+        <div style={{textAlign:"center",marginTop:14,fontSize:12,color:"var(--text2)"}}>
+          🔒 Secure payment via Razorpay · UPI, Card, Net Banking accepted
+        </div>
+        <div style={{textAlign:"center",marginTop:18,paddingTop:16,borderTop:"1px solid var(--border)"}}>
+          <div style={{fontSize:12,color:"var(--text2)"}}>Need help? Call <strong style={{color:"var(--gold)"}}>9911591033</strong></div>
         </div>
       </div>
     </div>
-  );
+    );
+  }
 
   return (
     <div className="auth-page">
