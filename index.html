@@ -140,12 +140,12 @@ const PRO_WHITELIST = ["tarun@thedesignshore.com"];
 const isWhitelisted = (email) => PRO_WHITELIST.includes((email||"").toLowerCase());
 
 const PLANS = [
-  {id:"starter",name:"Starter",price:"₹999",amount:99900,color:"#6ee7b7",scans:"500 scans/mo",locations:"1 location",features:["Custom review page","QR code","Email alerts","Basic analytics"]},
-  {id:"pro",name:"Pro",price:"₹2,499",amount:249900,color:"#fbbf24",popular:true,scans:"Unlimited scans",locations:"5 locations",features:["Everything in Starter","Custom branding","SMS alerts","Advanced analytics","Priority support"]},
-  {id:"agency",name:"Agency",price:"₹7,999",amount:799900,color:"#a78bfa",scans:"Unlimited everything",locations:"Unlimited",features:["White-label dashboard","Client management","API access","Reseller rights","Dedicated support"]},
+  {id:"starter",name:"Starter",price:"₹500",amount:50000,color:"#6ee7b7",scans:"500 scans/mo",locations:"1 location",features:["Custom review page","QR code","Email alerts","Basic analytics"]},
+  {id:"pro",name:"Pro",price:"₹1,100",amount:110000,color:"#fbbf24",popular:true,scans:"Unlimited scans",locations:"5 locations",features:["Everything in Starter","Custom branding","SMS alerts","Advanced analytics","Priority support"]},
+  {id:"agency",name:"Agency",price:"₹7,999",amount:799900,color:"#a78bfa",scans:"Unlimited everything",locations:"Unlimited locations",features:["White-label dashboard","Client management","API access","Reseller rights","Dedicated support"]},
 ];
 
-const DEMO_BIZ = {id:"demo001",name:"Spice Garden Restaurant",email:"owner@spicegarden.com",phone:"9876543210",plan:"pro",googleReviewUrl:"https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4",createdAt:"2025-01-15",feedbacks:[{id:1,rating:2,message:"Food was cold.",name:"Rahul S.",date:"2025-04-01",read:false},{id:2,rating:1,message:"Very disappointing.",name:"Priya M.",date:"2025-03-28",read:true}],positivesSent:47,totalScans:62};
+const DEMO_BIZ = {id:"demo001",name:"Spice Garden Restaurant",email:"owner@spicegarden.com",phone:"9876543210",plan:"pro",paymentStatus:"active",googleReviewUrl:"https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4",createdAt:"2025-01-15",feedbacks:[{id:1,rating:2,message:"Food was cold.",name:"Rahul S.",date:"2025-04-01",read:false},{id:2,rating:1,message:"Very disappointing.",name:"Priya M.",date:"2025-03-28",read:true}],positivesSent:47,totalScans:62};
 let ALL_BUSINESSES = [DEMO_BIZ];
 
 const STAR_LABELS = {1:"Very Poor",2:"Poor",3:"Average",4:"Good ✨",5:"Excellent! 🎉"};
@@ -266,7 +266,7 @@ function RegisterPage({setPage,setCurrentBiz,setBizList}){
     if(!form.name||!form.email||!form.business){alert("Please fill name, email and business name.");return;}
     setLoading(true);
     setTimeout(()=>{
-      const biz={id:"biz_"+Date.now(),name:form.business,email:form.email,phone:form.phone,password:form.password||"reviewshield123",googleReviewUrl:form.googleUrl||"https://search.google.com/local/writereview?placeid=PASTE_YOUR_PLACE_ID",plan:form.plan,createdAt:new Date().toISOString().split("T")[0],feedbacks:[],positivesSent:0,totalScans:0};
+      const biz={id:"biz_"+Date.now(),name:form.business,email:form.email,phone:form.phone,password:form.password||"reviewshield123",googleReviewUrl:form.googleUrl||"https://search.google.com/local/writereview?placeid=PASTE_YOUR_PLACE_ID",plan:form.plan,paymentStatus:"pending",createdAt:new Date().toISOString().split("T")[0],feedbacks:[],positivesSent:0,totalScans:0};
       ALL_BUSINESSES.push(biz);
       setNewBiz(biz);
       setCurrentBiz(biz);
@@ -405,6 +405,44 @@ function LoginPage({setPage,setCurrentBiz,bizList}){
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 function Dashboard({currentBiz,setPage,setCurrentBiz}){
+  // ── Payment lock check ──────────────────────────────────────────────────
+  const isActive = currentBiz.paymentStatus==="active" || isWhitelisted(currentBiz.email);
+  if(!isActive){
+    const waMsg = encodeURIComponent(`Hi Tarun, I've registered on ReviewShield but my account is still pending.\n\nName: ${currentBiz.name}\nEmail: ${currentBiz.email}\nPlan: ${currentBiz.plan}\n\nPlease send the payment link to activate. Thanks!`);
+    const waLink = `https://wa.me/919911591033?text=${waMsg}`;
+    return (
+      <div className="auth-page">
+        <div className="auth-card fade-in" style={{maxWidth:480}}>
+          <div style={{textAlign:"center",marginBottom:24}}>
+            <div style={{fontSize:56,marginBottom:14}}>⏳</div>
+            <div className="auth-title">Account Pending Activation</div>
+            <div className="auth-sub">Hi {currentBiz.name}! Complete payment to unlock your dashboard.</div>
+          </div>
+          <div style={{background:"rgba(245,200,66,0.06)",border:"1px solid rgba(245,200,66,0.25)",borderRadius:12,padding:18,marginBottom:18}}>
+            <div style={{fontSize:13,color:"var(--gold)",fontWeight:600,marginBottom:8}}>📋 What happens next:</div>
+            <div style={{fontSize:13,color:"var(--text2)",lineHeight:1.7}}>
+              <div>1. Click WhatsApp button below</div>
+              <div>2. We'll send you a secure Razorpay payment link</div>
+              <div>3. Complete payment via UPI / Card / Net Banking</div>
+              <div>4. Account auto-activates within 30 minutes ✨</div>
+            </div>
+          </div>
+          <a href={waLink} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}>
+            <button className="btn-submit" style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,fontSize:15,background:"#25D366",color:"#fff"}}>
+              <span style={{fontSize:18}}>📲</span> Get Payment Link via WhatsApp
+            </button>
+          </a>
+          <div style={{textAlign:"center",marginTop:14,fontSize:12,color:"var(--text2)"}}>
+            🔒 Secured by Razorpay · Need help? Call <strong style={{color:"var(--gold)"}}>9911591033</strong>
+          </div>
+          <div style={{textAlign:"center",marginTop:18,paddingTop:14,borderTop:"1px solid var(--border)"}}>
+            <span style={{fontSize:13,color:"var(--text2)",cursor:"pointer"}} onClick={()=>{setCurrentBiz(null);setPage("home");}}>← Back to home</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const [tab,setTab]=useState("overview");
   const [biz,setBiz]=useState(currentBiz);
   const [copied,setCopied]=useState(false);
@@ -720,7 +758,7 @@ function AdminDashboard({bizList,setPage}){
   const total=bizList.length;
   const totalFb=bizList.reduce((a,b)=>a+b.feedbacks.length,0);
   const totalPos=bizList.reduce((a,b)=>a+b.positivesSent,0);
-  const mrr=bizList.reduce((a,b)=>{const p={starter:999,pro:2499,agency:7999};return a+(p[b.plan]||0);},0);
+  const mrr=bizList.reduce((a,b)=>{const p={starter:500,pro:1100,agency:7999};return a+(p[b.plan]||0);},0);
   const planCount={starter:0,pro:0,agency:0};
   bizList.forEach(b=>{if(planCount[b.plan]!==undefined)planCount[b.plan]++;});
 
@@ -752,6 +790,25 @@ function AdminDashboard({bizList,setPage}){
         {tab==="overview"&&<div className="fade-in">
           <div className="page-title">Admin Overview</div>
           <div className="page-sub">Your ReviewShield business at a glance</div>
+
+          {/* PENDING ACTIVATIONS ALERT */}
+          {(() => {
+            const pending = bizList.filter(b => b.paymentStatus !== "active" && !isWhitelisted(b.email) && b.id !== "demo001");
+            if(pending.length === 0) return null;
+            return (
+              <div style={{background:"rgba(245,200,66,0.08)",border:"1px solid rgba(245,200,66,0.3)",borderRadius:14,padding:20,marginBottom:24,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+                <div style={{display:"flex",alignItems:"center",gap:14}}>
+                  <span style={{fontSize:32}}>⏳</span>
+                  <div>
+                    <div style={{fontFamily:"Syne,sans-serif",fontSize:18,fontWeight:700,color:"var(--gold)"}}>{pending.length} {pending.length===1?"client is":"clients are"} pending activation</div>
+                    <div style={{fontSize:13,color:"var(--text2)",marginTop:2}}>They've registered but haven't paid yet. Send them payment links!</div>
+                  </div>
+                </div>
+                <button onClick={()=>setTab("clients")} style={{padding:"10px 20px",background:"var(--gold)",color:"#0a0a0f",border:"none",borderRadius:10,fontWeight:700,cursor:"pointer",fontFamily:"DM Sans,sans-serif",fontSize:14}}>View Clients →</button>
+              </div>
+            );
+          })()}
+
           <div className="stats-grid">
             {[{label:"Total Clients",val:total,c:"gold"},{label:"MRR",val:`₹${mrr.toLocaleString("en-IN")}`,c:"green"},{label:"Sent to Google",val:totalPos,c:"green"},{label:"Private Feedbacks",val:totalFb,c:"red"}].map((s,i)=>(
               <div key={i} className="stat-card"><div className="stat-card-label">{s.label}</div><div className={`stat-card-num ${s.c}`}>{s.val}</div></div>
@@ -783,6 +840,11 @@ function AdminDashboard({bizList,setPage}){
                 <div style={{textAlign:"center"}}><div style={{fontSize:18,fontWeight:800,color:"var(--green)"}}>{b.positivesSent}</div><div style={{fontSize:11,color:"var(--text2)"}}>Google</div></div>
                 <div style={{textAlign:"center"}}><div style={{fontSize:18,fontWeight:800,color:"var(--red)"}}>{b.feedbacks.length}</div><div style={{fontSize:11,color:"var(--text2)"}}>Private</div></div>
                 <span className="badge badge-gold">{b.plan.toUpperCase()}</span>
+                {b.paymentStatus==="active" || isWhitelisted(b.email) ? (
+                  <span className="badge badge-green">✓ ACTIVE</span>
+                ) : (
+                  <span className="badge" style={{background:"rgba(245,200,66,0.15)",border:"1px solid rgba(245,200,66,0.4)",color:"var(--gold)"}}>⏳ PENDING</span>
+                )}
               </div>
             </div>
           ))}
@@ -792,9 +854,62 @@ function AdminDashboard({bizList,setPage}){
           <button onClick={()=>setSelected(null)} style={{background:"none",border:"none",color:"var(--text2)",cursor:"pointer",fontSize:14,marginBottom:20,fontFamily:"DM Sans,sans-serif"}}>← Back</button>
           <div className="page-title">{selected.name}</div>
           <div className="page-sub">{selected.email} · {selected.phone}</div>
+
+          {/* PAYMENT STATUS PANEL - BIG & PROMINENT */}
+          <div className="panel" style={{background:selected.paymentStatus==="active"?"rgba(34,197,94,0.05)":"rgba(245,200,66,0.05)",border:`1px solid ${selected.paymentStatus==="active"?"rgba(34,197,94,0.3)":"rgba(245,200,66,0.3)"}`,marginBottom:20}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+              <div>
+                <div style={{fontSize:11,color:"var(--text2)",fontWeight:600,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Payment Status</div>
+                <div style={{display:"flex",alignItems:"center",gap:10}}>
+                  <span style={{fontSize:24}}>{selected.paymentStatus==="active"?"✅":"⏳"}</span>
+                  <span style={{fontFamily:"Syne,sans-serif",fontSize:22,fontWeight:800,color:selected.paymentStatus==="active"?"var(--green)":"var(--gold)"}}>
+                    {selected.paymentStatus==="active"?"ACTIVE":"PENDING PAYMENT"}
+                  </span>
+                </div>
+                <div style={{fontSize:13,color:"var(--text2)",marginTop:6}}>
+                  {selected.paymentStatus==="active"?"Client has full access to dashboard and features.":"Client cannot access dashboard until activated."}
+                </div>
+              </div>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {selected.paymentStatus!=="active" ? (
+                  <button onClick={()=>{
+                    if(confirm(`Activate ${selected.name}? They will get full dashboard access.`)){
+                      // Update sheet
+                      if(SHEET_API_URL!=="PASTE_YOUR_APPS_SCRIPT_URL_HERE"){
+                        fetch(SHEET_API_URL,{method:"POST",mode:"no-cors",body:JSON.stringify({action:"setPaymentStatus",id:selected.id,status:"active"})}).catch(()=>{});
+                      }
+                      // Update local
+                      const updated={...selected,paymentStatus:"active"};
+                      setSelected(updated);
+                      window.location.reload();
+                    }
+                  }} style={{padding:"12px 24px",background:"var(--green)",color:"#fff",border:"none",borderRadius:10,fontWeight:700,cursor:"pointer",fontFamily:"DM Sans,sans-serif",fontSize:14}}>
+                    ✅ Activate Account
+                  </button>
+                ) : (
+                  <button onClick={()=>{
+                    if(confirm(`Suspend ${selected.name}? They will lose dashboard access.`)){
+                      if(SHEET_API_URL!=="PASTE_YOUR_APPS_SCRIPT_URL_HERE"){
+                        fetch(SHEET_API_URL,{method:"POST",mode:"no-cors",body:JSON.stringify({action:"setPaymentStatus",id:selected.id,status:"pending"})}).catch(()=>{});
+                      }
+                      const updated={...selected,paymentStatus:"pending"};
+                      setSelected(updated);
+                      window.location.reload();
+                    }
+                  }} style={{padding:"12px 24px",background:"rgba(239,68,68,0.1)",border:"1px solid var(--red)",color:"var(--red)",borderRadius:10,fontWeight:700,cursor:"pointer",fontFamily:"DM Sans,sans-serif",fontSize:14}}>
+                    🚫 Suspend
+                  </button>
+                )}
+                <a href={`https://wa.me/91${(selected.phone||"").replace(/\D/g,"")}?text=Hi%20${encodeURIComponent(selected.name||"")}%2C%20here%20is%20your%20ReviewShield%20payment%20link%3A%20`} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}>
+                  <button style={{padding:"12px 18px",background:"#25D366",color:"#fff",border:"none",borderRadius:10,fontWeight:600,cursor:"pointer",fontFamily:"DM Sans,sans-serif",fontSize:14,display:"flex",alignItems:"center",gap:6}}>📲 WhatsApp Client</button>
+                </a>
+              </div>
+            </div>
+          </div>
+
           <div className="stats-grid">
-            {[{label:"Plan",val:selected.plan.toUpperCase(),c:"gold"},{label:"Google Reviews",val:selected.positivesSent,c:"green"},{label:"Private Feedback",val:selected.feedbacks.length,c:"red"}].map((s,i)=>(
-              <div key={i} className="stat-card"><div className="stat-card-label">{s.label}</div><div className={`stat-card-num ${s.c}`}>{s.val}</div></div>
+            {[{label:"Plan",val:selected.plan.toUpperCase(),c:"gold"},{label:"Google Reviews",val:selected.positivesSent,c:"green"},{label:"Private Feedback",val:selected.feedbacks.length,c:"red"},{label:"Joined",val:selected.createdAt,c:"gold"}].map((s,i)=>(
+              <div key={i} className="stat-card"><div className="stat-card-label">{s.label}</div><div className={`stat-card-num ${s.c}`} style={{fontSize:s.label==="Joined"?18:32}}>{s.val}</div></div>
             ))}
           </div>
           <div className="panel">
@@ -838,7 +953,7 @@ function AdminDashboard({bizList,setPage}){
           </div>
           <div className="panel">
             <div className="panel-title">🎯 Growth Targets</div>
-            {[{n:10,r:"₹24,990"},{n:25,r:"₹62,475"},{n:50,r:"₹1,24,950"},{n:100,r:"₹2,49,900"}].map((t,i)=>(
+            {[{n:10,r:"₹14,160"},{n:25,r:"₹35,400"},{n:50,r:"₹70,800"},{n:100,r:"₹1,41,600"}].map((t,i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:i<3?"1px solid var(--border)":"none"}}>
                 <span style={{fontSize:16}}>{total>=t.n?"✅":"⭕"}</span>
                 <div style={{flex:1}}><span style={{fontSize:14,fontWeight:600}}>{t.n} clients</span><span style={{fontSize:13,color:"var(--text2)",marginLeft:8}}>→ {t.r}/mo</span></div>
@@ -902,7 +1017,7 @@ function App(){
       fetch(`${SHEET_API_URL}?action=getFeedbacks`).then(r=>r.json()).catch(()=>({data:[]})),
     ]).then(([bRes,fRes])=>{
       const feedbacks=fRes.data||[];
-      const bizzes=(bRes.data||[]).map(b=>({...b,positivesSent:Number(b.positivesSent)||0,totalScans:Number(b.totalScans)||0,feedbacks:feedbacks.filter(f=>f.bizId===b.id).map(f=>({...f,rating:Number(f.rating),read:f.read===true||f.read==="TRUE"}))}));
+      const bizzes=(bRes.data||[]).map(b=>({...b,paymentStatus:b.paymentStatus||"pending",positivesSent:Number(b.positivesSent)||0,totalScans:Number(b.totalScans)||0,feedbacks:feedbacks.filter(f=>f.bizId===b.id).map(f=>({...f,rating:Number(f.rating),read:f.read===true||f.read==="TRUE"}))}));
       const ids=bizzes.map(b=>b.id);
       setBizList([DEMO_BIZ,...bizzes.filter(b=>b.id!==DEMO_BIZ.id)]);
       setDbConnected(true);
