@@ -1870,10 +1870,36 @@ export default function App() {
   const [appLoading, setAppLoading] = useState(true);
 
   // ── Load all data from Google Sheets on startup ───────────────────────────
-  useEffect(() => {
-    if (SHEET_API_URL === "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
-      setAppLoading(false); return;
-    }
+useEffect(() => {
+  // Always show app after 3 seconds max, even if Sheets fails
+  const timeout = setTimeout(() => setAppLoading(false), 3000);
+  
+  if (SHEET_API_URL === "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
+    setAppLoading(false); 
+    clearTimeout(timeout);
+    return;
+  }
+  
+  Promise.all([SheetDB.getBusinesses(), SheetDB.getFeedbacks()])
+    .then(([bizList, feedbackList]) => {
+      const enriched = bizList.map(b => ({
+        ...b,
+        positivesSent: Number(b.positivesSent) || 0,
+        totalScans: Number(b.totalScans) || 0,
+        feedbacks: feedbackList
+          .filter(f => f.bizId === b.id)
+          .map(f => ({ ...f, rating: Number(f.rating), read: f.read === true || f.read === "TRUE" })),
+      }));
+      const sheetIds = enriched.map(b => b.id);
+      setBusinesses([
+        ...STORE.businesses.filter(b => !sheetIds.includes(b.id)),
+        ...enriched,
+      ]);
+      setDbConnected(true);
+    })
+    .catch(() => setDbConnected(false))
+    .finally(() => { setAppLoading(false); clearTimeout(timeout); });
+}, []);
     Promise.all([SheetDB.getBusinesses(), SheetDB.getFeedbacks()])
       .then(([bizList, feedbackList]) => {
         const enriched = bizList.map(b => ({
