@@ -2,68 +2,35 @@ import { useState, useEffect, useRef } from "react";
 
 // ─── Google Sheets API URL ────────────────────────────────────────────────────
 // After setting up Apps Script, paste your Web App URL here:
-const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxjaLaxPUdhKL_mGZLW0yi0TYTnIG8RDkwUUDM1TNEP5l1_vnawf9JYmKOTcIX3sVuKhg/exec";
+const SHEET_API_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
 
 // ─── Google Sheets API Functions ─────────────────────────────────────────────
 const SheetDB = {
-  // Load all businesses from sheet
+  // Load all businesses from sheet (GET — no CORS issue)
   async getBusinesses() {
     try {
-const res = await fetch(`${SHEET_API_URL}?action=getBusinesses`);
+      const res = await fetch(`${SHEET_API_URL}?action=getBusinesses`);
       const json = await res.json();
       return json.data || [];
     } catch (e) { console.error("SheetDB.getBusinesses failed:", e); return []; }
   },
 
-  // Save a new business to sheet
-  async saveBusiness(biz) {
+  // POST helper — uses text/plain to avoid CORS preflight
+  async post(payload) {
     try {
       await fetch(SHEET_API_URL, {
         method: "POST",
-        body: JSON.stringify({ action: "addBusiness", data: biz }),
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(payload),
       });
-    } catch (e) { console.error("SheetDB.saveBusiness failed:", e); }
+    } catch (e) { console.error("SheetDB.post failed:", e); }
   },
 
-  // Save a feedback entry to sheet
-  async saveFeedback(feedback) {
-    try {
-      await fetch(SHEET_API_URL, {
-        method: "POST",
-        body: JSON.stringify({ action: "addFeedback", data: feedback }),
-      });
-    } catch (e) { console.error("SheetDB.saveFeedback failed:", e); }
-  },
-
-  // Add email to whitelist sheet
-  async addToWhitelist(email) {
-    try {
-      await fetch(SHEET_API_URL, {
-        method: "POST",
-        body: JSON.stringify({ action: "addWhitelist", email }),
-      });
-    } catch (e) { console.error("SheetDB.addToWhitelist failed:", e); }
-  },
-
-  // Remove email from whitelist sheet
-  async removeFromWhitelist(email) {
-    try {
-      await fetch(SHEET_API_URL, {
-        method: "POST",
-        body: JSON.stringify({ action: "removeWhitelist", email }),
-      });
-    } catch (e) { console.error("SheetDB.removeFromWhitelist failed:", e); }
-  },
-
-  // Increment positivesSent for a business
-  async incrementPositive(id) {
-    try {
-      await fetch(SHEET_API_URL, {
-        method: "POST",
-        body: JSON.stringify({ action: "incrementPositive", id }),
-      });
-    } catch (e) { console.error("SheetDB.incrementPositive failed:", e); }
-  },
+  async saveBusiness(biz)          { return this.post({ action: "addBusiness", data: biz }); },
+  async saveFeedback(fb)           { return this.post({ action: "addFeedback", data: fb }); },
+  async addToWhitelist(email)      { return this.post({ action: "addWhitelist", email }); },
+  async removeFromWhitelist(email) { return this.post({ action: "removeWhitelist", email }); },
+  async incrementPositive(id)      { return this.post({ action: "incrementPositive", id }); },
 };
 
 // ─── Shared Data Store (demo data for when sheet isn't connected yet) ─────────
@@ -1867,39 +1834,13 @@ export default function App() {
   const [currentBusiness, setCurrentBusiness] = useState(null);
   const [businesses, setBusinesses] = useState(STORE.businesses);
   const [dbConnected, setDbConnected] = useState(false);
-  const [appLoading, setAppLoading] = useState(true);
+  const [appLoading, setAppLoading] = useState(false);
 
   // ── Load all data from Google Sheets on startup ───────────────────────────
-useEffect(() => {
-  // Always show app after 3 seconds max, even if Sheets fails
-  const timeout = setTimeout(() => setAppLoading(false), 3000);
-  
-  if (SHEET_API_URL === "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
-    setAppLoading(false); 
-    clearTimeout(timeout);
-    return;
-  }
-  
-  Promise.all([SheetDB.getBusinesses(), SheetDB.getFeedbacks()])
-    .then(([bizList, feedbackList]) => {
-      const enriched = bizList.map(b => ({
-        ...b,
-        positivesSent: Number(b.positivesSent) || 0,
-        totalScans: Number(b.totalScans) || 0,
-        feedbacks: feedbackList
-          .filter(f => f.bizId === b.id)
-          .map(f => ({ ...f, rating: Number(f.rating), read: f.read === true || f.read === "TRUE" })),
-      }));
-      const sheetIds = enriched.map(b => b.id);
-      setBusinesses([
-        ...STORE.businesses.filter(b => !sheetIds.includes(b.id)),
-        ...enriched,
-      ]);
-      setDbConnected(true);
-    })
-    .catch(() => setDbConnected(false))
-    .finally(() => { setAppLoading(false); clearTimeout(timeout); });
-}, []);
+  useEffect(() => {
+    if (SHEET_API_URL === "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
+      setAppLoading(false); return;
+    }
     Promise.all([SheetDB.getBusinesses(), SheetDB.getFeedbacks()])
       .then(([bizList, feedbackList]) => {
         const enriched = bizList.map(b => ({
@@ -2011,4 +1952,3 @@ useEffect(() => {
     </>
   );
 }
-
