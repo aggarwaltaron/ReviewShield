@@ -748,6 +748,139 @@ function AdminLogin({setPage}){
   );
 }
 
+function ClientDetailView({selected, setSelected}) {
+  const isEnabled = selected.paymentStatus === "active" || isWhitelisted(selected.email);
+  const feedbacks = selected.feedbacks || [];
+  const phoneClean = (selected.phone || "").toString().replace(/\D/g, "");
+  const waLink = "https://wa.me/91" + phoneClean + "?text=" + encodeURIComponent("Hi " + (selected.name || "") + ", here is your ReviewShield payment link: ");
+
+  const handleEnable = () => {
+    if (!confirm("Enable " + selected.name + "? They will get full dashboard access.")) return;
+    if (SHEET_API_URL !== "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
+      fetch(SHEET_API_URL, {method:"POST", mode:"no-cors", body: JSON.stringify({action:"setPaymentStatus", id: selected.id, status:"active"})}).catch(()=>{});
+    }
+    setSelected({...selected, paymentStatus: "active"});
+    alert("✅ Account enabled! They can now login.");
+  };
+
+  const handleDisable = () => {
+    if (!confirm("Disable " + selected.name + "? They will lose dashboard access.")) return;
+    if (SHEET_API_URL !== "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
+      fetch(SHEET_API_URL, {method:"POST", mode:"no-cors", body: JSON.stringify({action:"setPaymentStatus", id: selected.id, status:"pending"})}).catch(()=>{});
+    }
+    setSelected({...selected, paymentStatus: "pending"});
+    alert("Account disabled.");
+  };
+
+  const handleDelete = () => {
+    if (!confirm("⚠️ Delete " + selected.name + " permanently? This cannot be undone.")) return;
+    const conf = prompt("Type the client's email to confirm deletion:");
+    if (conf !== selected.email) { alert("Email didn't match. Deletion cancelled."); return; }
+    if (SHEET_API_URL !== "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
+      fetch(SHEET_API_URL, {method:"POST", mode:"no-cors", body: JSON.stringify({action:"deleteBusiness", id: selected.id})}).catch(()=>{});
+    }
+    alert("✅ " + selected.name + " has been deleted.");
+    setSelected(null);
+    setTimeout(()=>window.location.reload(), 500);
+  };
+
+  return (
+    <div className="fade-in">
+      <button onClick={()=>setSelected(null)} style={{background:"none",border:"none",color:"var(--text2)",cursor:"pointer",fontSize:14,marginBottom:20,fontFamily:"DM Sans,sans-serif"}}>← Back to all clients</button>
+      <div className="page-title">{selected.name || "Unnamed Business"}</div>
+      <div className="page-sub">{selected.email}{selected.phone ? " · " + selected.phone : ""}</div>
+
+      <div className="panel" style={{background: isEnabled ? "rgba(34,197,94,0.05)" : "rgba(245,200,66,0.05)", border: "1px solid " + (isEnabled ? "rgba(34,197,94,0.3)" : "rgba(245,200,66,0.3)"), marginBottom: 20}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+          <div>
+            <div style={{fontSize:11,color:"var(--text2)",fontWeight:600,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Account Status</div>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <span style={{fontSize:24}}>{isEnabled ? "✅" : "⏳"}</span>
+              <span style={{fontFamily:"Syne,sans-serif",fontSize:22,fontWeight:800,color: isEnabled ? "var(--green)" : "var(--gold)"}}>
+                {isEnabled ? "ENABLED" : "DISABLED"}
+              </span>
+            </div>
+            <div style={{fontSize:13,color:"var(--text2)",marginTop:6}}>
+              {isEnabled ? "Client has full access to dashboard." : "Client cannot access dashboard until you enable them."}
+            </div>
+          </div>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            {!isEnabled ? (
+              <button onClick={handleEnable} style={{padding:"12px 24px",background:"var(--green)",color:"#fff",border:"none",borderRadius:10,fontWeight:700,cursor:"pointer",fontFamily:"DM Sans,sans-serif",fontSize:14}}>✅ Enable Account</button>
+            ) : (
+              <button onClick={handleDisable} style={{padding:"12px 24px",background:"rgba(239,68,68,0.1)",border:"1px solid var(--red)",color:"var(--red)",borderRadius:10,fontWeight:700,cursor:"pointer",fontFamily:"DM Sans,sans-serif",fontSize:14}}>🚫 Disable</button>
+            )}
+            {phoneClean ? (
+              <a href={waLink} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}>
+                <button style={{padding:"12px 18px",background:"#25D366",color:"#fff",border:"none",borderRadius:10,fontWeight:600,cursor:"pointer",fontFamily:"DM Sans,sans-serif",fontSize:14}}>📲 WhatsApp</button>
+              </a>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-title">📋 Client Details</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:16}}>
+          <div style={{padding:"12px 16px",background:"var(--bg3)",borderRadius:10}}>
+            <div style={{fontSize:11,color:"var(--text2)",fontWeight:600,marginBottom:4,textTransform:"uppercase"}}>Plan</div>
+            <div style={{fontSize:16,fontWeight:600,color:"var(--gold)"}}>{(selected.plan || "unknown").toUpperCase()}</div>
+          </div>
+          <div style={{padding:"12px 16px",background:"var(--bg3)",borderRadius:10}}>
+            <div style={{fontSize:11,color:"var(--text2)",fontWeight:600,marginBottom:4,textTransform:"uppercase"}}>Joined</div>
+            <div style={{fontSize:16,fontWeight:600}}>{selected.createdAt || "—"}</div>
+          </div>
+          <div style={{padding:"12px 16px",background:"var(--bg3)",borderRadius:10}}>
+            <div style={{fontSize:11,color:"var(--text2)",fontWeight:600,marginBottom:4,textTransform:"uppercase"}}>Phone</div>
+            <div style={{fontSize:16,fontWeight:600}}>{selected.phone || "—"}</div>
+          </div>
+          <div style={{padding:"12px 16px",background:"var(--bg3)",borderRadius:10}}>
+            <div style={{fontSize:11,color:"var(--text2)",fontWeight:600,marginBottom:4,textTransform:"uppercase"}}>Reviews to Google</div>
+            <div style={{fontSize:16,fontWeight:600,color:"var(--green)"}}>{Number(selected.positivesSent) || 0}</div>
+          </div>
+          <div style={{padding:"12px 16px",background:"var(--bg3)",borderRadius:10}}>
+            <div style={{fontSize:11,color:"var(--text2)",fontWeight:600,marginBottom:4,textTransform:"uppercase"}}>Private Feedback</div>
+            <div style={{fontSize:16,fontWeight:600,color:"var(--red)"}}>{feedbacks.length}</div>
+          </div>
+          <div style={{padding:"12px 16px",background:"var(--bg3)",borderRadius:10}}>
+            <div style={{fontSize:11,color:"var(--text2)",fontWeight:600,marginBottom:4,textTransform:"uppercase"}}>Total Scans</div>
+            <div style={{fontSize:16,fontWeight:600,color:"var(--gold)"}}>{(Number(selected.totalScans) || 0) + feedbacks.length}</div>
+          </div>
+        </div>
+        <div style={{marginTop:14,padding:"10px 14px",background:"var(--bg3)",borderRadius:8,fontSize:12,color:"var(--text2)",wordBreak:"break-all"}}>
+          <strong style={{color:"var(--text)"}}>Google URL:</strong> {selected.googleReviewUrl || "Not set"}
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-title">💬 Captured Feedbacks ({feedbacks.length})</div>
+        {feedbacks.length === 0 ? (
+          <div style={{color:"var(--text2)",fontSize:14,padding:"12px 0"}}>No negative feedback captured yet.</div>
+        ) : feedbacks.map((f, i) => (
+          <div key={i} className="feedback-item" style={{marginBottom:10}}>
+            <div style={{display:"flex",gap:2,marginBottom:6}}>
+              {[1,2,3,4,5].map(s => <span key={s} style={{opacity: s <= Number(f.rating) ? 1 : 0.2}}>⭐</span>)}
+            </div>
+            <div style={{fontSize:14}}>"{f.message}"</div>
+            <div style={{fontSize:12,color:"var(--text2)",marginTop:4}}>{f.name || "Anonymous"} · {f.date}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="panel" style={{borderColor:"rgba(239,68,68,0.3)"}}>
+        <div className="panel-title" style={{color:"var(--red)"}}>⚠️ Danger Zone</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+          <div>
+            <div style={{fontSize:14,fontWeight:600,marginBottom:4}}>Delete this client permanently</div>
+            <div style={{fontSize:13,color:"var(--text2)"}}>This will remove them from your Google Sheet. Cannot be undone.</div>
+          </div>
+          <button onClick={handleDelete} style={{padding:"10px 20px",background:"rgba(239,68,68,0.1)",border:"1px solid var(--red)",color:"var(--red)",borderRadius:10,fontWeight:700,cursor:"pointer",fontFamily:"DM Sans,sans-serif",fontSize:13}}>🗑️ Delete Client</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AdminDashboard({bizList,setPage}){
   const [tab,setTab]=useState("overview");
   const [selected,setSelected]=useState(null);
@@ -848,139 +981,7 @@ function AdminDashboard({bizList,setPage}){
           ))}
         </div>}
 
-        {tab==="clients"&&selected&&<div className="fade-in">
-              <button onClick={()=>setSelected(null)} style={{background:"none",border:"none",color:"var(--text2)",cursor:"pointer",fontSize:14,marginBottom:20,fontFamily:"DM Sans,sans-serif"}}>← Back to all clients</button>
-              <div className="page-title">{selected.name || "Unnamed Business"}</div>
-              <div className="page-sub">{selected.email}{selected.phone?` · ${selected.phone}`:""}</div>
-
-              {/* STATUS PANEL */}
-              <div className="panel" style={{background:(selected.paymentStatus==="active"||isWhitelisted(selected.email))?"rgba(34,197,94,0.05)":"rgba(245,200,66,0.05)",border:`1px solid ${(selected.paymentStatus==="active"||isWhitelisted(selected.email))?"rgba(34,197,94,0.3)":"rgba(245,200,66,0.3)"}`,marginBottom:20}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
-                  <div>
-                    <div style={{fontSize:11,color:"var(--text2)",fontWeight:600,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Account Status</div>
-                    <div style={{display:"flex",alignItems:"center",gap:10}}>
-                      <span style={{fontSize:24}}>{(selected.paymentStatus==="active"||isWhitelisted(selected.email))?"✅":"⏳"}</span>
-                      <span style={{fontFamily:"Syne,sans-serif",fontSize:22,fontWeight:800,color:(selected.paymentStatus==="active"||isWhitelisted(selected.email))?"var(--green)":"var(--gold)"}}>
-                        {(selected.paymentStatus==="active"||isWhitelisted(selected.email))?"ENABLED":"DISABLED"}
-                      </span>
-                    </div>
-                    <div style={{fontSize:13,color:"var(--text2)",marginTop:6}}>
-                      {(selected.paymentStatus==="active"||isWhitelisted(selected.email))?"Client has full access to dashboard.":"Client cannot access dashboard until you enable them."}
-                    </div>
-                  </div>
-                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                    {selected.paymentStatus!=="active" && !isWhitelisted(selected.email) ? (
-                      <button onClick={()=>{
-                        if(confirm(`Enable ${selected.name}? They will get full dashboard access.`)){
-                          if(SHEET_API_URL!=="PASTE_YOUR_APPS_SCRIPT_URL_HERE"){
-                            fetch(SHEET_API_URL,{method:"POST",mode:"no-cors",body:JSON.stringify({action:"setPaymentStatus",id:selected.id,status:"active"})}).catch(()=>{});
-                          }
-                          setSelected({...selected,paymentStatus:"active"});
-                          alert("✅ Account enabled! They can now login.");
-                        }
-                      }} style={{padding:"12px 24px",background:"var(--green)",color:"#fff",border:"none",borderRadius:10,fontWeight:700,cursor:"pointer",fontFamily:"DM Sans,sans-serif",fontSize:14}}>
-                        ✅ Enable Account
-                      </button>
-                    ) : (
-                      <button onClick={()=>{
-                        if(confirm(`Disable ${selected.name}? They will lose dashboard access.`)){
-                          if(SHEET_API_URL!=="PASTE_YOUR_APPS_SCRIPT_URL_HERE"){
-                            fetch(SHEET_API_URL,{method:"POST",mode:"no-cors",body:JSON.stringify({action:"setPaymentStatus",id:selected.id,status:"pending"})}).catch(()=>{});
-                          }
-                          setSelected({...selected,paymentStatus:"pending"});
-                          alert("Account disabled.");
-                        }
-                      }} style={{padding:"12px 24px",background:"rgba(239,68,68,0.1)",border:"1px solid var(--red)",color:"var(--red)",borderRadius:10,fontWeight:700,cursor:"pointer",fontFamily:"DM Sans,sans-serif",fontSize:14}}>
-                        🚫 Disable
-                      </button>
-                    )}
-                    {selected.phone && (
-                      <a href={`https://wa.me/91${(selected.phone||"").replace(/\D/g,"")}?text=Hi%20${encodeURIComponent(selected.name||"")}%2C%20here%20is%20your%20ReviewShield%20payment%20link%3A%20`} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}>
-                        <button style={{padding:"12px 18px",background:"#25D366",color:"#fff",border:"none",borderRadius:10,fontWeight:600,cursor:"pointer",fontFamily:"DM Sans,sans-serif",fontSize:14}}>📲 WhatsApp</button>
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* CLIENT INFO */}
-              <div className="panel">
-                <div className="panel-title">📋 Client Details</div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:16}}>
-                  <div style={{padding:"12px 16px",background:"var(--bg3)",borderRadius:10}}>
-                    <div style={{fontSize:11,color:"var(--text2)",fontWeight:600,marginBottom:4,textTransform:"uppercase"}}>Plan</div>
-                    <div style={{fontSize:16,fontWeight:600,color:"var(--gold)"}}>{(selected.plan||"unknown").toUpperCase()}</div>
-                  </div>
-                  <div style={{padding:"12px 16px",background:"var(--bg3)",borderRadius:10}}>
-                    <div style={{fontSize:11,color:"var(--text2)",fontWeight:600,marginBottom:4,textTransform:"uppercase"}}>Joined</div>
-                    <div style={{fontSize:16,fontWeight:600}}>{selected.createdAt||"—"}</div>
-                  </div>
-                  <div style={{padding:"12px 16px",background:"var(--bg3)",borderRadius:10}}>
-                    <div style={{fontSize:11,color:"var(--text2)",fontWeight:600,marginBottom:4,textTransform:"uppercase"}}>Phone</div>
-                    <div style={{fontSize:16,fontWeight:600}}>{selected.phone||"—"}</div>
-                  </div>
-                  <div style={{padding:"12px 16px",background:"var(--bg3)",borderRadius:10}}>
-                    <div style={{fontSize:11,color:"var(--text2)",fontWeight:600,marginBottom:4,textTransform:"uppercase"}}>Reviews to Google</div>
-                    <div style={{fontSize:16,fontWeight:600,color:"var(--green)"}}>{Number(selected.positivesSent)||0}</div>
-                  </div>
-                  <div style={{padding:"12px 16px",background:"var(--bg3)",borderRadius:10}}>
-                    <div style={{fontSize:11,color:"var(--text2)",fontWeight:600,marginBottom:4,textTransform:"uppercase"}}>Private Feedback</div>
-                    <div style={{fontSize:16,fontWeight:600,color:"var(--red)"}}>{(selected.feedbacks||[]).length}</div>
-                  </div>
-                  <div style={{padding:"12px 16px",background:"var(--bg3)",borderRadius:10}}>
-                    <div style={{fontSize:11,color:"var(--text2)",fontWeight:600,marginBottom:4,textTransform:"uppercase"}}>Total Scans</div>
-                    <div style={{fontSize:16,fontWeight:600,color:"var(--gold)"}}>{(Number(selected.totalScans)||0)+(selected.feedbacks||[]).length}</div>
-                  </div>
-                </div>
-                <div style={{marginTop:14,padding:"10px 14px",background:"var(--bg3)",borderRadius:8,fontSize:12,color:"var(--text2)",wordBreak:"break-all"}}>
-                  <strong style={{color:"var(--text)"}}>Google URL:</strong> {selected.googleReviewUrl || "Not set"}
-                </div>
-              </div>
-
-              {/* FEEDBACKS */}
-              <div className="panel">
-                <div className="panel-title">💬 Their Captured Feedbacks ({(selected.feedbacks||[]).length})</div>
-                {(selected.feedbacks||[]).length===0 ? (
-                  <div style={{color:"var(--text2)",fontSize:14,padding:"12px 0"}}>No negative feedback captured yet.</div>
-                ) : (
-                  (selected.feedbacks||[]).map((f,i)=>(
-                    <div key={i} className="feedback-item" style={{marginBottom:10}}>
-                      <div style={{display:"flex",gap:2,marginBottom:6}}>{[1,2,3,4,5].map(s=><span key={s} style={{opacity:s<=Number(f.rating)?1:0.2}}>⭐</span>)}</div>
-                      <div style={{fontSize:14}}>"{f.message}"</div>
-                      <div style={{fontSize:12,color:"var(--text2)",marginTop:4}}>{f.name||"Anonymous"} · {f.date}</div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {/* DANGER ZONE */}
-              <div className="panel" style={{borderColor:"rgba(239,68,68,0.3)"}}>
-                <div className="panel-title" style={{color:"var(--red)"}}>⚠️ Danger Zone</div>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
-                  <div>
-                    <div style={{fontSize:14,fontWeight:600,marginBottom:4}}>Delete this client permanently</div>
-                    <div style={{fontSize:13,color:"var(--text2)"}}>This will remove them from your Google Sheet. Cannot be undone.</div>
-                  </div>
-                  <button onClick={()=>{
-                    if(confirm(`⚠️ Delete ${selected.name} permanently?\n\nThis cannot be undone.`)){
-                      const conf = prompt(`Type the client's email to confirm deletion:`);
-                      if(conf===selected.email){
-                        if(SHEET_API_URL!=="PASTE_YOUR_APPS_SCRIPT_URL_HERE"){
-                          fetch(SHEET_API_URL,{method:"POST",mode:"no-cors",body:JSON.stringify({action:"deleteBusiness",id:selected.id})}).catch(()=>{});
-                        }
-                        alert(`✅ ${selected.name} has been deleted.`);
-                        setSelected(null);
-                        window.location.reload();
-                      } else {
-                        alert("Email didn't match. Deletion cancelled.");
-                      }
-                    }
-                  }} style={{padding:"10px 20px",background:"rgba(239,68,68,0.1)",border:"1px solid var(--red)",color:"var(--red)",borderRadius:10,fontWeight:700,cursor:"pointer",fontFamily:"DM Sans,sans-serif",fontSize:13}}>
-                    🗑️ Delete Client
-                  </button>
-                </div>
-              </div>
-            </div>}
+        {tab==="clients"&&selected&&<ClientDetailView selected={selected} setSelected={setSelected} />}
 
         {tab==="feedbacks"&&<div className="fade-in">
           <div className="page-title">All Feedbacks</div>
