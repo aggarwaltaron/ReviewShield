@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 // ─── Google Sheets API URL ────────────────────────────────────────────────────
 // After setting up Apps Script, paste your Web App URL here:
-const SHEET_API_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
+const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbwmDWqHWFi9mpQN_hiq2464XTy_uJGh_WiubzieB_XGqr99-QjXr46xlR5JPIXD0_tuWA/exec";
 
 // ─── Google Sheets API Functions ─────────────────────────────────────────────
 const SheetDB = {
