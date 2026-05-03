@@ -1,12 +1,933 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ReviewShield</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ReviewShield — Boost Your Google Rating</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;--border:rgba(255,255,255,0.07);--gold:#f5c842;--gold2:#e8a020;--green:#22c55e;--red:#ef4444;--text:#f0f0f5;--text2:#9090aa;--card:rgba(255,255,255,0.04)}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 32px;background:rgba(10,10,15,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--gold);cursor:pointer}
+.nav-logo span{color:var(--text)}
+.nav-links{display:flex;gap:8px}
+.btn{padding:10px 20px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all 0.2s}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--card);color:var(--text)}
+.btn-primary{background:var(--gold);color:#0a0a0f;font-weight:700}
+.btn-primary:hover{background:var(--gold2);transform:translateY(-1px)}
+.btn-big{padding:16px 36px;font-size:16px;border-radius:12px}
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(245,200,66,0.12) 0%,transparent 70%)}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(36px,6vw,72px);font-weight:800;line-height:1.05;letter-spacing:-2px;margin-bottom:20px}
+.hero h1 .accent{color:var(--gold)}
+.hero p{font-size:18px;color:var(--text2);max-width:540px;line-height:1.6;margin-bottom:40px}
+.hero-stats{display:flex;gap:40px;margin-top:60px;flex-wrap:wrap;justify-content:center}
+.stat-num{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--gold)}
+.stat-label{font-size:13px;color:var(--text2);margin-top:4px}
+.section{padding:80px 24px}
+.section-inner{max-width:1000px;margin:0 auto}
+.section-label{text-align:center;font-size:12px;color:var(--gold);font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.section-title{text-align:center;font-family:'Syne',sans-serif;font-size:clamp(24px,4vw,42px);font-weight:800;margin-bottom:16px;letter-spacing:-1px}
+.section-sub{text-align:center;color:var(--text2);font-size:16px;max-width:500px;margin:0 auto 48px;line-height:1.6}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px}
+.card-icon{font-size:28px;margin-bottom:14px}
+.card-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:8px}
+.card-desc{font-size:14px;color:var(--text2);line-height:1.6}
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;max-width:960px;margin:0 auto}
+.price-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:32px;position:relative;transition:transform 0.2s}
+.price-card:hover{transform:translateY(-4px)}
+.price-card.popular{border-color:var(--gold)}
+.popular-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:#0a0a0f;font-size:11px;font-weight:700;padding:3px 14px;border-radius:100px}
+.price-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px}
+.price-amount{font-family:'Syne',sans-serif;font-size:40px;font-weight:800;line-height:1}
+.price-period{color:var(--text2);font-size:14px;margin-bottom:20px}
+.price-features{list-style:none;margin-bottom:28px;display:flex;flex-direction:column;gap:10px}
+.price-features li{font-size:14px;color:var(--text2);display:flex;align-items:center;gap:8px}
+.price-features li::before{content:'✓';color:var(--green);font-weight:700}
+.auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:100px 24px 40px;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(245,200,66,0.06) 0%,transparent 60%)}
+.auth-card{background:var(--bg2);border:1px solid var(--border);border-radius:24px;padding:44px;width:100%;max-width:460px}
+.auth-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;margin-bottom:6px}
+.auth-sub{color:var(--text2);font-size:14px;margin-bottom:32px}
+.form-group{margin-bottom:16px}
+.form-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:block;letter-spacing:0.3px}
+.form-input{width:100%;padding:13px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;transition:border-color 0.2s}
+.form-input:focus{border-color:var(--gold)}
+.form-input::placeholder{color:var(--text2)}
+.btn-submit{width:100%;padding:15px;background:var(--gold);color:#0a0a0f;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;margin-top:6px}
+.btn-submit:hover{background:var(--gold2)}
+.btn-submit:disabled{opacity:0.5;cursor:not-allowed}
+.auth-switch{text-align:center;margin-top:20px;font-size:14px;color:var(--text2)}
+.auth-switch a{color:var(--gold);cursor:pointer;font-weight:600}
+.dashboard{display:flex;min-height:100vh}
+.sidebar{width:240px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:80px 0 24px;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;overflow-y:auto}
+.sidebar-logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--gold);padding:0 24px 28px;cursor:pointer}
+.sidebar-nav{flex:1;padding:0 12px;display:flex;flex-direction:column;gap:4px}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;color:var(--text2);transition:all 0.2s}
+.sidebar-item:hover{background:var(--card);color:var(--text)}
+.sidebar-item.active{background:rgba(245,200,66,0.1);color:var(--gold)}
+.sidebar-bottom{padding:16px 12px 0;border-top:1px solid var(--border)}
+.logout-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;font-size:14px;color:var(--text2);cursor:pointer;transition:all 0.2s}
+.logout-btn:hover{background:rgba(239,68,68,0.1);color:var(--red)}
+.main-content{flex:1;margin-left:240px;padding:88px 32px 32px;min-height:100vh}
+.page-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:4px}
+.page-sub{color:var(--text2);font-size:14px;margin-bottom:28px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px}
+.stat-card-label{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
+.stat-card-num{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;line-height:1}
+.stat-card-num.gold{color:var(--gold)}
+.stat-card-num.green{color:var(--green)}
+.stat-card-num.red{color:var(--red)}
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px}
+.panel-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:16px}
+.qr-box{width:140px;height:140px;background:white;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.qr-box img{width:130px;height:130px}
+.url-box{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--text2);word-break:break-all;font-family:monospace;margin-bottom:12px}
+.copy-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:var(--card);border:1px solid var(--border);border-radius:9px;font-size:13px;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;margin-right:8px;margin-bottom:8px}
+.copy-btn:hover{background:rgba(255,255,255,0.08)}
+.feedback-item{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px}
+.feedback-item.unread{border-left:3px solid var(--red)}
+.toggle{width:44px;height:24px;background:var(--bg3);border-radius:100px;position:relative;cursor:pointer;transition:background 0.2s;border:1px solid var(--border);flex-shrink:0}
+.toggle.on{background:var(--green)}
+.toggle::after{content:'';width:18px;height:18px;background:white;border-radius:50%;position:absolute;top:2px;left:3px;transition:transform 0.2s}
+.toggle.on::after{transform:translateX(20px)}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}
+.settings-row:last-child{border-bottom:none}
+.review-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(135deg,#0a0a0f 0%,#1a1015 100%)}
+.review-card{background:var(--bg2);border:1px solid var(--border);border-radius:24px;padding:48px 40px;max-width:460px;width:100%;text-align:center;box-shadow:0 40px 80px rgba(0,0,0,0.5)}
+.star-btn{font-size:42px;cursor:pointer;transition:transform 0.15s;filter:grayscale(1) opacity(0.3);border:none;background:none;padding:4px}
+.star-btn.active{filter:none;transform:scale(1.15)}
+.star-btn:hover{filter:none;transform:scale(1.2)}
+.btn-rate{padding:15px 44px;background:var(--gold);color:#0a0a0f;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s}
+.btn-rate:hover{background:var(--gold2);transform:translateY(-2px)}
+.btn-rate:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+footer{text-align:center;padding:32px 24px;color:var(--text2);font-size:13px;border-top:1px solid var(--border)}
+.badge{font-size:11px;padding:3px 10px;border-radius:100px;font-weight:700}
+.badge-gold{background:rgba(245,200,66,0.1);color:var(--gold);border:1px solid rgba(245,200,66,0.3)}
+.badge-green{background:rgba(34,197,94,0.1);color:var(--green);border:1px solid rgba(34,197,94,0.3)}
+.badge-red{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.3)}
+.badge-purple{background:rgba(168,85,247,0.15);color:#a78bfa;border:1px solid rgba(168,85,247,0.3)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fade-in{animation:fadeUp 0.4s ease both}
+.spinner{width:36px;height:36px;border:3px solid var(--gold);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;margin:20px auto}
+@media(max-width:768px){
+  .sidebar{display:none}
+  .main-content{margin-left:0;padding:80px 16px 24px}
+  .hero-stats{gap:24px}
+  .review-card{padding:36px 24px}
+  .nav{padding:12px 16px}
+}
+select.form-input{cursor:pointer}
+textarea.form-input{resize:vertical;min-height:110px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxjaLaxPUdhKL_mGZLW0yi0TYTnIG8RDkwUUDM1TNEP5l1_vnawf9JYmKOTcIX3sVuKhg/exec";
+const ADMIN_PASSWORD = "TDS@ReviewShield2026";
+const PRO_WHITELIST = ["tarun@thedesignshore.com"];
+const isWhitelisted = (email) => PRO_WHITELIST.includes((email||"").toLowerCase());
+
+const PLANS = [
+  {id:"starter",name:"Starter",price:"₹999",amount:99900,color:"#6ee7b7",scans:"500 scans/mo",locations:"1 location",features:["Custom review page","QR code","Email alerts","Basic analytics"]},
+  {id:"pro",name:"Pro",price:"₹2,499",amount:249900,color:"#fbbf24",popular:true,scans:"Unlimited scans",locations:"5 locations",features:["Everything in Starter","Custom branding","SMS alerts","Advanced analytics","Priority support"]},
+  {id:"agency",name:"Agency",price:"₹7,999",amount:799900,color:"#a78bfa",scans:"Unlimited everything",locations:"Unlimited",features:["White-label dashboard","Client management","API access","Reseller rights","Dedicated support"]},
+];
+
+const DEMO_BIZ = {id:"demo001",name:"Spice Garden Restaurant",email:"owner@spicegarden.com",phone:"9876543210",plan:"pro",googleReviewUrl:"https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4",createdAt:"2025-01-15",feedbacks:[{id:1,rating:2,message:"Food was cold.",name:"Rahul S.",date:"2025-04-01",read:false},{id:2,rating:1,message:"Very disappointing.",name:"Priya M.",date:"2025-03-28",read:true}],positivesSent:47,totalScans:62};
+let ALL_BUSINESSES = [DEMO_BIZ];
+
+const STAR_LABELS = {1:"Very Poor",2:"Poor",3:"Average",4:"Good ✨",5:"Excellent! 🎉"};
+
+// ── Nav ──────────────────────────────────────────────────────────────────────
+function Nav({page,setPage,currentBiz}){
+  return (
+    <nav className="nav">
+      <div className="nav-logo" onClick={()=>setPage("home")}>Review<span>Shield</span></div>
+      <div className="nav-links">
+        {currentBiz ? <>
+          <button className="btn btn-ghost" onClick={()=>setPage("dashboard")}>Dashboard</button>
+          <button className="btn btn-primary" onClick={()=>setPage("review-preview")}>Preview Page</button>
+        </> : <>
+          <button className="btn btn-ghost" onClick={()=>setPage("login")}>Login</button>
+          <button className="btn btn-primary" onClick={()=>setPage("register")}>Start Free Trial</button>
+        </>}
+      </div>
+    </nav>
+  );
+}
+
+// ── Home ─────────────────────────────────────────────────────────────────────
+function HomePage({setPage}){
+  return (
+    <div>
+      <section className="hero">
+        <div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(245,200,66,0.1)",border:"1px solid rgba(245,200,66,0.3)",padding:"6px 16px",borderRadius:100,fontSize:13,color:"var(--gold)",fontWeight:500,marginBottom:28}}>
+          🛡️ Trusted by 1,200+ Indian Businesses
+        </div>
+        <h1>Stop Bad Reviews From<br/>Reaching <span className="accent">Google</span></h1>
+        <p>ReviewShield intelligently routes unhappy customers to a private feedback form — so only your happiest customers leave public Google reviews.</p>
+        <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+          <button className="btn btn-primary btn-big" onClick={()=>setPage("register")}>Get Started Free →</button>
+          <button className="btn btn-ghost btn-big" onClick={()=>setPage("demo-review")}>See Live Demo</button>
+        </div>
+        <div className="hero-stats">
+          <div className="stat"><div className="stat-num">4.8★</div><div className="stat-label">Average Google rating</div></div>
+          <div className="stat"><div className="stat-num">1,200+</div><div className="stat-label">Businesses protected</div></div>
+          <div className="stat"><div className="stat-num">+1.3★</div><div className="stat-label">Rating lift in 60 days</div></div>
+        </div>
+      </section>
+
+      <section className="section" style={{background:"var(--bg2)"}}>
+        <div className="section-inner">
+          <div className="section-label">Why ReviewShield</div>
+          <div className="section-title">Everything You Need to Dominate Your Ratings</div>
+          <div className="section-sub">Our smart review system works silently in the background — protecting your reputation 24/7.</div>
+          <div className="grid-3">
+            {[
+              {icon:"📱",title:"QR Code & Smart Link",desc:"One QR code on your counter or receipt. Customers scan, we handle the rest automatically."},
+              {icon:"🛡️",title:"Reputation Protection",desc:"Our system ensures only your happiest customers make it to your public Google profile."},
+              {icon:"📬",title:"Private Feedback Inbox",desc:"Unhappy customers? Their feedback lands in your private dashboard — never on Google."},
+              {icon:"📊",title:"Live Analytics",desc:"Track your rating trend, scan volume, and customer sentiment in one clean dashboard."},
+              {icon:"🔔",title:"Instant Alerts",desc:"Get notified immediately when new feedback comes in so you can respond fast."},
+              {icon:"🏢",title:"Multi-Location Ready",desc:"Separate QR codes and dashboards for every location under one account."},
+            ].map((b,i)=>(
+              <div key={i} className="card">
+                <div className="card-icon">{b.icon}</div>
+                <div className="card-title">{b.title}</div>
+                <div className="card-desc">{b.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="section-inner">
+          <div className="section-label">Pricing</div>
+          <div className="section-title">Simple, Transparent Plans</div>
+          <div className="section-sub">14-day free trial. Pay via UPI, Card, Net Banking, or Wallet.</div>
+          <div className="pricing-grid">
+            {PLANS.map(plan=>(
+              <div key={plan.id} className={`price-card ${plan.popular?"popular":""}`}>
+                {plan.popular && <div className="popular-badge">MOST POPULAR</div>}
+                <div className="price-name" style={{color:plan.color}}>{plan.name}</div>
+                <div><span className="price-amount">{plan.price}</span><span className="price-period">/mo</span></div>
+                <div style={{fontSize:12,color:plan.color,background:`${plan.color}15`,padding:"6px 12px",borderRadius:8,display:"inline-block",marginBottom:18}}>{plan.scans} · {plan.locations}</div>
+                <ul className="price-features">
+                  {plan.features.map(f=><li key={f}>{f}</li>)}
+                </ul>
+                <button className={`btn btn-big ${plan.popular?"btn-primary":"btn-ghost"}`} style={{width:"100%"}} onClick={()=>setPage("register")}>
+                  {plan.popular?"Start Free Trial":"Get Started"}
+                </button>
+              </div>
+            ))}
+          </div>
+          <div style={{textAlign:"center",marginTop:16,fontSize:13,color:"var(--text2)"}}>🔒 Secured by Razorpay · Cancel anytime</div>
+        </div>
+      </section>
+
+      <footer>
+        <div style={{fontFamily:"Syne,sans-serif",fontWeight:800,color:"var(--gold)",marginBottom:12,fontSize:18}}>ReviewShield</div>
+        <div style={{display:"flex",justifyContent:"center",gap:20,marginBottom:12,flexWrap:"wrap"}}>
+          <a onClick={()=>setPage("terms")} style={{color:"var(--text2)",cursor:"pointer"}}>Terms of Service</a>
+          <a onClick={()=>setPage("privacy")} style={{color:"var(--text2)",cursor:"pointer"}}>Privacy Policy</a>
+          <a href="mailto:tarun@thedesignshore.com" style={{color:"var(--text2)"}}>Contact Us</a>
+        </div>
+        <div>© 2026 ReviewShield · Made in India 🇮🇳</div>
+      </footer>
+    </div>
+  );
+}
+
+// ── Register ──────────────────────────────────────────────────────────────────
+function RegisterPage({setPage,setCurrentBiz,setBizList}){
+  const [step,setStep]=useState("details");
+  const [form,setForm]=useState({name:"",email:"",phone:"",business:"",googleUrl:"",plan:"pro",password:""});
+  const [loading,setLoading]=useState(false);
+  const [newBiz,setNewBiz]=useState(null);
+
+  const handleCreate=()=>{
+    if(!form.name||!form.email||!form.business){alert("Please fill name, email and business name.");return;}
+    setLoading(true);
+    setTimeout(()=>{
+      const biz={id:"biz_"+Date.now(),name:form.business,email:form.email,phone:form.phone,password:form.password||"reviewshield123",googleReviewUrl:form.googleUrl||"https://search.google.com/local/writereview?placeid=PASTE_YOUR_PLACE_ID",plan:form.plan,createdAt:new Date().toISOString().split("T")[0],feedbacks:[],positivesSent:0,totalScans:0};
+      ALL_BUSINESSES.push(biz);
+      setNewBiz(biz);
+      setCurrentBiz(biz);
+      setBizList([...ALL_BUSINESSES]);
+      // Save to sheet
+      if(SHEET_API_URL!=="PASTE_YOUR_APPS_SCRIPT_URL_HERE"){
+        fetch(SHEET_API_URL,{method:"POST",body:JSON.stringify({action:"addBusiness",data:biz})}).catch(()=>{});
+      }
+      setLoading(false);
+      setStep("payment");
+    },800);
+  };
+
+  const selectedPlan=PLANS.find(p=>p.id===form.plan);
+
+  if(step==="payment") return (
+    <div className="auth-page">
+      <div className="auth-card fade-in">
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{fontSize:48,marginBottom:12}}>✅</div>
+          <div className="auth-title">Account Created!</div>
+          <div className="auth-sub">Complete payment to activate your plan</div>
+        </div>
+        <div style={{background:"var(--bg3)",border:"1px solid var(--border)",borderRadius:14,padding:20,marginBottom:20}}>
+          <div style={{fontSize:12,color:"var(--text2)",marginBottom:10,fontWeight:600}}>ORDER SUMMARY</div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <span style={{fontSize:15,fontWeight:600}}>{selectedPlan?.name} Plan</span>
+            <span style={{fontFamily:"Syne,sans-serif",fontSize:20,fontWeight:800,color:"var(--gold)"}}>{selectedPlan?.price}/mo</span>
+          </div>
+          <div style={{color:"var(--green)",marginTop:10,fontSize:13,fontWeight:600}}>✓ 14-day free trial included</div>
+        </div>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:20}}>
+          {["UPI","GPay","PhonePe","Card","Net Banking"].map(m=>(
+            <span key={m} style={{fontSize:11,padding:"3px 10px",background:"var(--bg3)",border:"1px solid var(--border)",borderRadius:100,color:"var(--text2)"}}>{m}</span>
+          ))}
+        </div>
+        <button className="btn-submit" onClick={()=>alert("Razorpay integration: Add your API key in the code to enable payments.")} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,fontSize:15}}>
+          🔒 Pay {selectedPlan?.price} via Razorpay
+        </button>
+        <div style={{textAlign:"center",marginTop:14,fontSize:12,color:"var(--text2)"}}>256-bit SSL · Powered by Razorpay</div>
+        <div style={{textAlign:"center",marginTop:12}}>
+          <span style={{fontSize:13,color:"var(--gold)",cursor:"pointer",fontWeight:600}} onClick={()=>setPage("dashboard")}>
+            Skip for now → Go to dashboard (trial mode)
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="auth-page">
+      <div className="auth-card fade-in">
+        <div className="auth-title">Start Your Free Trial</div>
+        <div className="auth-sub">14 days free · No credit card needed</div>
+        {[
+          {label:"YOUR NAME",key:"name",placeholder:"Tarun Gupta"},
+          {label:"BUSINESS NAME",key:"business",placeholder:"Spice Garden Restaurant"},
+          {label:"EMAIL ADDRESS",key:"email",placeholder:"you@business.com",type:"email"},
+          {label:"PHONE NUMBER",key:"phone",placeholder:"9911591033"},
+          {label:"CREATE PASSWORD",key:"password",placeholder:"Min 8 characters",type:"password"},
+        ].map(f=>(
+          <div key={f.key} className="form-group">
+            <label className="form-label">{f.label}</label>
+            <input className="form-input" type={f.type||"text"} placeholder={f.placeholder} value={form[f.key]} onChange={e=>setForm({...form,[f.key]:e.target.value})} />
+          </div>
+        ))}
+        <div className="form-group">
+          <label className="form-label">GOOGLE REVIEW LINK (add later in settings)</label>
+          <input className="form-input" placeholder="https://search.google.com/local/writereview?placeid=..." value={form.googleUrl} onChange={e=>setForm({...form,googleUrl:e.target.value})} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">SELECT PLAN</label>
+          <select className="form-input" value={form.plan} onChange={e=>setForm({...form,plan:e.target.value})}>
+            {PLANS.map(p=><option key={p.id} value={p.id}>{p.name} — {p.price}/mo</option>)}
+          </select>
+        </div>
+        <button className="btn-submit" onClick={handleCreate} disabled={loading}>
+          {loading?"Creating account...":"Continue to Payment →"}
+        </button>
+        <div className="auth-switch">Already have an account? <a onClick={()=>setPage("login")}>Login</a></div>
+      </div>
+    </div>
+  );
+}
+
+// ── Login ─────────────────────────────────────────────────────────────────────
+function LoginPage({setPage,setCurrentBiz,bizList}){
+  const [form,setForm]=useState({email:"",password:""});
+  const [error,setError]=useState("");
+
+  const handleLogin=()=>{
+    const found=bizList.find(b=>b.email?.toLowerCase()===form.email.toLowerCase());
+    if(found){
+      if(found.password&&form.password&&found.password!==form.password){setError("wrong_password");return;}
+      setCurrentBiz(found);setPage("dashboard");
+    } else if(form.email==="owner@spicegarden.com"){
+      setCurrentBiz(DEMO_BIZ);setPage("dashboard");
+    } else {setError("not_found");}
+  };
+
+  return (
+    <div className="auth-page">
+      <div className="auth-card fade-in">
+        <div className="auth-title">Welcome Back</div>
+        <div className="auth-sub">Login to your ReviewShield dashboard</div>
+        <div className="form-group">
+          <label className="form-label">EMAIL ADDRESS</label>
+          <input className="form-input" type="email" placeholder="you@business.com" value={form.email} onChange={e=>{setForm({...form,email:e.target.value});setError("");}} onKeyDown={e=>e.key==="Enter"&&handleLogin()} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">PASSWORD</label>
+          <input className="form-input" type="password" placeholder="••••••••" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} onKeyDown={e=>e.key==="Enter"&&handleLogin()} />
+        </div>
+        {error==="not_found"&&<div style={{color:"var(--red)",fontSize:13,marginBottom:8}}>❌ No account found. Please register first.</div>}
+        {error==="wrong_password"&&<div style={{color:"var(--red)",fontSize:13,marginBottom:8}}>❌ Wrong password. Try again.</div>}
+        <div style={{fontSize:12,color:"var(--text2)",marginBottom:8}}>Demo: <strong style={{color:"var(--gold)"}}>owner@spicegarden.com</strong> + any password</div>
+        <button className="btn-submit" onClick={handleLogin}>Login →</button>
+        <div className="auth-switch">No account? <a onClick={()=>setPage("register")}>Start free trial</a></div>
+      </div>
+    </div>
+  );
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+function Dashboard({currentBiz,setPage,setCurrentBiz}){
+  const [tab,setTab]=useState("overview");
+  const [biz,setBiz]=useState(currentBiz);
+  const [copied,setCopied]=useState(false);
+  const [settings,setSettings]=useState({threshold:4,emailAlerts:true,smsAlerts:false});
+  const hasPro=biz.plan==="pro"||biz.plan==="agency"||isWhitelisted(biz.email);
+  const reviewLink=`https://reviewshield.in/r/${biz.id}`;
+  const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(reviewLink)}&bgcolor=ffffff&color=000000&margin=10`;
+  const unread=biz.feedbacks.filter(f=>!f.read).length;
+
+  const copy=()=>{try{navigator.clipboard.writeText(reviewLink);}catch(e){}setCopied(true);setTimeout(()=>setCopied(false),2000);};
+
+  const NAVS=[
+    {id:"overview",icon:"📊",label:"Overview"},
+    {id:"qrcode",icon:"📱",label:"QR & Links"},
+    {id:"feedback",icon:"💬",label:`Inbox ${unread>0?`(${unread})`:""}`,},
+    {id:"billing",icon:"💳",label:"Billing"},
+    {id:"settings",icon:"⚙️",label:"Settings"},
+  ];
+
+  return (
+    <div className="dashboard">
+      <div className="sidebar">
+        <div className="sidebar-logo" onClick={()=>setPage("home")}>ReviewShield</div>
+        <nav className="sidebar-nav">
+          {NAVS.map(n=>(
+            <div key={n.id} className={`sidebar-item ${tab===n.id?"active":""}`} onClick={()=>setTab(n.id)}>
+              <span>{n.icon}</span>{n.label}
+            </div>
+          ))}
+          <div className="sidebar-item" onClick={()=>setPage("review-preview")}>
+            <span>👁️</span>Preview Page
+          </div>
+        </nav>
+        <div className="sidebar-bottom">
+          <div style={{padding:"0 14px 12px",fontSize:13}}>
+            <div style={{fontWeight:600,color:"var(--text)"}}>{biz.name}</div>
+            <div style={{color:"var(--text2)",marginTop:2,fontSize:12}}>{biz.email}</div>
+            <div style={{display:"flex",gap:6,marginTop:6,flexWrap:"wrap"}}>
+              <span className="badge badge-gold">{biz.plan.toUpperCase()}</span>
+              {isWhitelisted(biz.email)&&<span className="badge badge-purple">⭐ VIP</span>}
+            </div>
+          </div>
+          <div className="logout-btn" onClick={()=>{setCurrentBiz(null);setPage("home");}}>🚪 Logout</div>
+        </div>
+      </div>
+
+      <div className="main-content">
+        {tab==="overview"&&(
+          <div className="fade-in">
+            <div className="page-title">Overview</div>
+            <div className="page-sub">{biz.name} — all time stats</div>
+            <div className="stats-grid">
+              <div className="stat-card"><div className="stat-card-label">Total Scans</div><div className="stat-card-num gold">{biz.totalScans+biz.feedbacks.length}</div></div>
+              <div className="stat-card"><div className="stat-card-label">Sent to Google</div><div className="stat-card-num green">{biz.positivesSent}</div></div>
+              <div className="stat-card"><div className="stat-card-label">Captured Private</div><div className="stat-card-num red">{biz.feedbacks.length}</div></div>
+              <div className="stat-card"><div className="stat-card-label">Shield Rate</div><div className="stat-card-num gold">{biz.positivesSent>0?Math.round((biz.positivesSent/(biz.positivesSent+biz.feedbacks.length))*100):0}%</div></div>
+            </div>
+            <div className="panel">
+              <div className="panel-title">🚀 Quick Setup</div>
+              {[
+                {done:true,text:"Account created"},
+                {done:!!biz.googleReviewUrl&&!biz.googleReviewUrl.includes("PASTE"),text:"Google Review URL linked — go to Settings to add it"},
+                {done:false,text:"Share QR code with customers"},
+                {done:false,text:"Collect your first 10 reviews"},
+              ].map((s,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:i<3?"1px solid var(--border)":"none"}}>
+                  <span style={{fontSize:16}}>{s.done?"✅":"⭕"}</span>
+                  <span style={{fontSize:14,color:s.done?"var(--text)":"var(--text2)"}}>{s.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {tab==="qrcode"&&(
+          <div className="fade-in">
+            <div className="page-title">QR Code & Links</div>
+            <div className="page-sub">Share with customers at checkout, receipts, or tables.</div>
+            <div className="panel">
+              <div className="panel-title">Your Unique Review Link</div>
+              <div style={{display:"flex",gap:28,flexWrap:"wrap",alignItems:"flex-start"}}>
+                <div>
+                  <div className="qr-box"><img src={qrUrl} alt="QR"/></div>
+                  <div style={{marginTop:10,display:"flex",gap:6,flexWrap:"wrap"}}>
+                    <button className="copy-btn" onClick={()=>{const a=document.createElement('a');a.href=qrUrl;a.download='reviewshield-qr.png';a.click();}}>⬇ Download QR</button>
+                    <button className="copy-btn" onClick={()=>window.open(`https://wa.me/?text=Rate us! ${reviewLink}`,"_blank")}>📲 WhatsApp</button>
+                  </div>
+                </div>
+                <div style={{flex:1,minWidth:200}}>
+                  <div style={{fontSize:12,color:"var(--text2)",marginBottom:8,fontWeight:600}}>YOUR REVIEW LINK</div>
+                  <div className="url-box">{reviewLink}</div>
+                  <button className={`copy-btn ${copied?"":""}`} onClick={copy}>{copied?"✓ Copied!":"📋 Copy Link"}</button>
+                  <button className="copy-btn" onClick={()=>setPage("review-preview")}>👁 Preview</button>
+                  <div style={{marginTop:16,fontSize:13,color:"var(--text2)",lineHeight:1.7}}>
+                    <strong style={{color:"var(--text)",display:"block",marginBottom:6}}>Where to use:</strong>
+                    Print on receipts · Table tents · Business cards · WhatsApp · Email signature
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="panel">
+              <div className="panel-title">🛡️ How Protection Works</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                <div style={{background:"rgba(34,197,94,0.06)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:12,padding:16}}>
+                  <div style={{fontSize:20,marginBottom:8}}>✅</div>
+                  <div style={{fontWeight:700,marginBottom:4,color:"var(--green)"}}>Happy Customers</div>
+                  <div style={{fontSize:13,color:"var(--text2)",lineHeight:1.5}}>Guided to share on Google publicly.</div>
+                </div>
+                <div style={{background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:12,padding:16}}>
+                  <div style={{fontSize:20,marginBottom:8}}>🔒</div>
+                  <div style={{fontWeight:700,marginBottom:4,color:"var(--red)"}}>Unhappy Customers</div>
+                  <div style={{fontSize:13,color:"var(--text2)",lineHeight:1.5}}>Private feedback — never reaches Google.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {tab==="feedback"&&(
+          <div className="fade-in">
+            <div className="page-title">Private Feedback Inbox</div>
+            <div className="page-sub">Captured reviews — visible only to you.</div>
+            {biz.feedbacks.length===0?(
+              <div className="panel" style={{textAlign:"center",padding:60}}>
+                <div style={{fontSize:48,marginBottom:12}}>🎉</div>
+                <div style={{fontFamily:"Syne,sans-serif",fontSize:20,fontWeight:700}}>No negative feedback yet!</div>
+                <div style={{color:"var(--text2)",marginTop:8}}>Shield is working perfectly.</div>
+              </div>
+            ):(
+              biz.feedbacks.map((f,i)=>(
+                <div key={i} className={`feedback-item ${!f.read?"unread":""}`}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:8,flexWrap:"wrap",gap:8}}>
+                    <div style={{display:"flex",gap:2}}>
+                      {[1,2,3,4,5].map(s=><span key={s} style={{fontSize:15,opacity:s<=f.rating?1:0.2}}>⭐</span>)}
+                      {!f.read&&<span className="badge badge-red" style={{marginLeft:8}}>NEW</span>}
+                    </div>
+                    <span style={{fontSize:12,color:"var(--text2)"}}>{f.name} · {f.date}</span>
+                  </div>
+                  <div style={{fontSize:14,lineHeight:1.6}}>"{f.message}"</div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {tab==="billing"&&(
+          <div className="fade-in">
+            <div className="page-title">Billing & Plans</div>
+            <div className="page-sub">Manage your subscription.</div>
+            <div className="panel" style={{marginBottom:20}}>
+              <div className="panel-title">Current Plan</div>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+                <div>
+                  <div style={{fontSize:20,fontWeight:700,fontFamily:"Syne,sans-serif",color:"var(--gold)"}}>{PLANS.find(p=>p.id===biz.plan)?.name} Plan</div>
+                  <div style={{fontSize:13,color:"var(--text2)",marginTop:4}}>{PLANS.find(p=>p.id===biz.plan)?.price}/month</div>
+                </div>
+                <span className="badge badge-green" style={{fontSize:12,padding:"5px 14px"}}>ACTIVE</span>
+              </div>
+            </div>
+            <div className="panel-title" style={{marginBottom:14}}>Change Plan</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12}}>
+              {PLANS.map(plan=>(
+                <div key={plan.id} style={{background:biz.plan===plan.id?"rgba(245,200,66,0.05)":"var(--bg2)",border:`1px solid ${biz.plan===plan.id?"var(--gold)":"var(--border)"}`,borderRadius:14,padding:20}}>
+                  <div style={{color:plan.color,fontWeight:700,marginBottom:4}}>{plan.name}</div>
+                  <div style={{fontFamily:"Syne,sans-serif",fontSize:26,fontWeight:800}}>{plan.price}<span style={{fontSize:13,fontWeight:400,color:"var(--text2)"}}>/mo</span></div>
+                  <button disabled={biz.plan===plan.id} onClick={()=>alert("Razorpay: Add your API key to enable payments.")}
+                    style={{width:"100%",marginTop:14,padding:"10px",borderRadius:10,border:`1px solid ${plan.color}`,background:`${plan.color}15`,color:plan.color,cursor:biz.plan===plan.id?"default":"pointer",fontSize:13,fontWeight:600,fontFamily:"DM Sans,sans-serif",opacity:biz.plan===plan.id?0.6:1}}>
+                    {biz.plan===plan.id?"Current plan":`Switch to ${plan.name}`}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {tab==="settings"&&(
+          <div className="fade-in">
+            <div className="page-title">Settings</div>
+            <div className="page-sub">Customize ReviewShield for {biz.name}.</div>
+            <div className="panel">
+              <div className="panel-title">🔗 Google Review URL</div>
+              <input className="form-input" value={biz.googleReviewUrl} onChange={e=>setBiz({...biz,googleReviewUrl:e.target.value})} placeholder="https://search.google.com/local/writereview?placeid=..." />
+              <div style={{fontSize:12,color:"var(--text2)",marginTop:6}}>Search your business on Google → click "Write a review" → copy the URL</div>
+              <button className="copy-btn" style={{marginTop:12}} onClick={()=>window.open(biz.googleReviewUrl,"_blank")}>🔗 Test Link</button>
+            </div>
+            <div className="panel">
+              <div className="panel-title">⚙️ Review Threshold</div>
+              <div style={{fontSize:13,color:"var(--text2)",marginBottom:12}}>Customers who rate {settings.threshold}★+ will be sent to Google.</div>
+              <div style={{display:"flex",gap:8}}>
+                {[3,4,5].map(n=>(
+                  <button key={n} onClick={()=>setSettings({...settings,threshold:n})}
+                    style={{padding:"9px 20px",borderRadius:10,border:`1px solid ${settings.threshold===n?"var(--gold)":"var(--border)"}`,background:settings.threshold===n?"rgba(245,200,66,0.1)":"var(--bg3)",color:settings.threshold===n?"var(--gold)":"var(--text2)",cursor:"pointer",fontWeight:600,fontSize:14,fontFamily:"DM Sans,sans-serif"}}>
+                    {n}★+
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="panel">
+              <div className="panel-title">🔔 Notifications</div>
+              {[
+                {key:"emailAlerts",label:"Email Alerts",desc:"Get email when feedback is captured",pro:false},
+                {key:"smsAlerts",label:"SMS Alerts",desc:"Get SMS for every new feedback",pro:true},
+              ].map(s=>(
+                <div key={s.key} className="settings-row">
+                  <div>
+                    <div style={{fontSize:14,fontWeight:500}}>{s.label} {s.pro&&!hasPro&&<span className="badge badge-gold" style={{marginLeft:6}}>PRO</span>} {s.pro&&hasPro&&<span className="badge badge-purple" style={{marginLeft:6}}>✓ UNLOCKED</span>}</div>
+                    <div style={{fontSize:12,color:"var(--text2)",marginTop:2}}>{s.desc}</div>
+                  </div>
+                  {(!s.pro||hasPro)?<div className={`toggle ${settings[s.key]?"on":""}`} onClick={()=>setSettings({...settings,[s.key]:!settings[s.key]})} />:<button onClick={()=>setTab("billing")} style={{fontSize:12,padding:"5px 12px",borderRadius:8,border:"1px solid var(--gold)",background:"rgba(245,200,66,0.08)",color:"var(--gold)",cursor:"pointer",fontFamily:"DM Sans,sans-serif"}}>Upgrade</button>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Review Page (customer facing) ─────────────────────────────────────────────
+function ReviewPage({bizId,bizList,addFeedback,addPositive,isDemo,setPage}){
+  const biz=isDemo?{id:"demo",name:"Spice Garden Restaurant",googleReviewUrl:"https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4"}:bizList.find(b=>b.id===bizId)||bizList[0];
+  const [step,setStep]=useState("rate");
+  const [rating,setRating]=useState(0);
+  const [hovered,setHovered]=useState(0);
+  const [text,setText]=useState("");
+  const [name,setName]=useState("");
+  const THRESHOLD=4;
+
+  const handleRate=()=>{
+    if(!rating)return;
+    if(rating>=THRESHOLD){
+      setStep("done-positive");
+      if(!isDemo&&addPositive)addPositive(biz.id);
+      setTimeout(()=>window.open(biz.googleReviewUrl,"_blank"),1500);
+    } else setStep("feedback");
+  };
+
+  const handleSubmit=()=>{
+    if(addFeedback&&biz)addFeedback(biz.id,{rating,message:text||"No message.",name:name||"Anonymous"});
+    setStep("done-negative");
+  };
+
+  const display=hovered||rating;
+  return (
+    <div className="review-page">
+      {setPage&&<div style={{position:"fixed",top:16,left:16,zIndex:1000}}><button className="copy-btn" onClick={()=>setPage(isDemo?"home":"dashboard")}>← Back</button></div>}
+      <div className="review-card fade-in">
+        <div style={{fontFamily:"Syne,sans-serif",fontSize:20,fontWeight:800,color:"var(--gold)",marginBottom:28}}>Review<span style={{color:"var(--text)"}}>Shield</span></div>
+        {step==="rate"&&<>
+          <div style={{fontFamily:"Syne,sans-serif",fontSize:24,fontWeight:800,marginBottom:8}}>{biz?.name}</div>
+          <div style={{color:"var(--text2)",fontSize:15,marginBottom:32,lineHeight:1.5}}>How was your experience with us?</div>
+          <div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:24}}>
+            {[1,2,3,4,5].map(s=>(
+              <button key={s} className={`star-btn ${s<=display?"active":""}`} onMouseEnter={()=>setHovered(s)} onMouseLeave={()=>setHovered(0)} onClick={()=>setRating(s)}>⭐</button>
+            ))}
+          </div>
+          <div style={{fontSize:14,color:"var(--text2)",marginBottom:24,height:20}}>{display?STAR_LABELS[display]:"Tap a star to rate"}</div>
+          <button className="btn-rate" onClick={handleRate} disabled={!rating}>Submit Rating →</button>
+        </>}
+        {step==="feedback"&&<div>
+          <div style={{fontSize:48,marginBottom:12}}>💬</div>
+          <div style={{fontFamily:"Syne,sans-serif",fontSize:22,fontWeight:800,marginBottom:8}}>We're Sorry!</div>
+          <div style={{color:"var(--text2)",fontSize:14,marginBottom:20}}>Tell us what went wrong — we'll make it right.</div>
+          <input className="form-input" placeholder="Your name (optional)" value={name} onChange={e=>setName(e.target.value)} style={{marginBottom:10}} />
+          <textarea className="form-input" placeholder="What happened?" value={text} onChange={e=>setText(e.target.value)} style={{marginBottom:16}} />
+          <button className="btn-rate" onClick={handleSubmit}>Send Feedback →</button>
+        </div>}
+        {step==="done-positive"&&<div>
+          <div style={{fontSize:64,marginBottom:12}}>🎉</div>
+          <div style={{fontFamily:"Syne,sans-serif",fontSize:24,fontWeight:800,marginBottom:8}}>Thank You!</div>
+          <div style={{color:"var(--text2)",fontSize:14}}>Opening Google review page...</div>
+          <div className="spinner" />
+        </div>}
+        {step==="done-negative"&&<div>
+          <div style={{fontSize:64,marginBottom:12}}>🙏</div>
+          <div style={{fontFamily:"Syne,sans-serif",fontSize:24,fontWeight:800,marginBottom:8}}>Feedback Received</div>
+          <div style={{color:"var(--text2)",fontSize:14,lineHeight:1.6}}>Thank you. Our team will look into this and work to improve your experience.</div>
+          <div style={{marginTop:16,padding:"12px 20px",background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:12,fontSize:13,color:"var(--green)"}}>✓ Feedback privately shared with the team.</div>
+        </div>}
+      </div>
+    </div>
+  );
+}
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+function AdminLogin({setPage}){
+  const [pwd,setPwd]=useState("");
+  const [err,setErr]=useState(false);
+  return (
+    <div className="auth-page">
+      <div className="auth-card fade-in" style={{maxWidth:380,textAlign:"center"}}>
+        <div style={{fontSize:40,marginBottom:12}}>🔐</div>
+        <div className="auth-title">Admin Access</div>
+        <div className="auth-sub">ReviewShield Super Admin</div>
+        <div className="form-group" style={{textAlign:"left"}}>
+          <label className="form-label">ADMIN PASSWORD</label>
+          <input className="form-input" type="password" placeholder="Enter password" value={pwd} onChange={e=>{setPwd(e.target.value);setErr(false);}} onKeyDown={e=>e.key==="Enter"&&(pwd===ADMIN_PASSWORD?setPage("admin"):setErr(true))} />
+          {err&&<div style={{color:"var(--red)",fontSize:13,marginTop:6}}>❌ Wrong password.</div>}
+        </div>
+        <button className="btn-submit" onClick={()=>pwd===ADMIN_PASSWORD?setPage("admin"):setErr(true)}>Enter →</button>
+        <div style={{marginTop:12}}><span style={{fontSize:13,color:"var(--text2)",cursor:"pointer"}} onClick={()=>setPage("home")}>← Back to site</span></div>
+      </div>
+    </div>
+  );
+}
+
+function AdminDashboard({bizList,setPage}){
+  const [tab,setTab]=useState("overview");
+  const [selected,setSelected]=useState(null);
+  const [whitelist,setWhitelist]=useState([...PRO_WHITELIST]);
+  const [newEmail,setNewEmail]=useState("");
+  const total=bizList.length;
+  const totalFb=bizList.reduce((a,b)=>a+b.feedbacks.length,0);
+  const totalPos=bizList.reduce((a,b)=>a+b.positivesSent,0);
+  const mrr=bizList.reduce((a,b)=>{const p={starter:999,pro:2499,agency:7999};return a+(p[b.plan]||0);},0);
+  const planCount={starter:0,pro:0,agency:0};
+  bizList.forEach(b=>{if(planCount[b.plan]!==undefined)planCount[b.plan]++;});
+
+  const NAVS=[{id:"overview",icon:"📊",label:"Overview"},{id:"clients",icon:"🏢",label:`Clients (${total})`},{id:"feedbacks",icon:"💬",label:`Feedbacks (${totalFb})`},{id:"revenue",icon:"💰",label:"Revenue"},{id:"whitelist",icon:"⭐",label:`VIP (${whitelist.length})`}];
+
+  return (
+    <div className="dashboard">
+      <div className="sidebar">
+        <div style={{padding:"0 24px 8px"}}>
+          <div style={{fontFamily:"Syne,sans-serif",fontSize:16,fontWeight:800,color:"var(--gold)"}}>ReviewShield</div>
+          <div style={{fontSize:11,color:"var(--red)",fontWeight:700,letterSpacing:1,marginTop:2}}>⚡ SUPER ADMIN</div>
+        </div>
+        <nav className="sidebar-nav" style={{marginTop:16}}>
+          {NAVS.map(n=>(
+            <div key={n.id} className={`sidebar-item ${tab===n.id?"active":""}`} onClick={()=>{setTab(n.id);setSelected(null);}}>
+              <span>{n.icon}</span>{n.label}
+            </div>
+          ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <div style={{padding:"0 14px 12px",fontSize:13}}>
+            <div style={{fontWeight:600,color:"var(--text)"}}>Tarun Gupta</div>
+            <div style={{color:"var(--text2)",fontSize:12}}>tarun@thedesignshore.com</div>
+          </div>
+          <div className="logout-btn" onClick={()=>setPage("home")}>🚪 Exit Admin</div>
+        </div>
+      </div>
+      <div className="main-content">
+        {tab==="overview"&&<div className="fade-in">
+          <div className="page-title">Admin Overview</div>
+          <div className="page-sub">Your ReviewShield business at a glance</div>
+          <div className="stats-grid">
+            {[{label:"Total Clients",val:total,c:"gold"},{label:"MRR",val:`₹${mrr.toLocaleString("en-IN")}`,c:"green"},{label:"Sent to Google",val:totalPos,c:"green"},{label:"Private Feedbacks",val:totalFb,c:"red"}].map((s,i)=>(
+              <div key={i} className="stat-card"><div className="stat-card-label">{s.label}</div><div className={`stat-card-num ${s.c}`}>{s.val}</div></div>
+            ))}
+          </div>
+          <div className="panel">
+            <div className="panel-title">📦 Plan Distribution</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
+              {PLANS.map(plan=>(
+                <div key={plan.id} style={{background:"var(--bg3)",borderRadius:12,padding:16,textAlign:"center"}}>
+                  <div style={{fontSize:26,fontWeight:800,fontFamily:"Syne,sans-serif",color:plan.color}}>{planCount[plan.id]}</div>
+                  <div style={{fontSize:12,color:"var(--text2)",marginTop:4}}>{plan.name}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>}
+
+        {tab==="clients"&&!selected&&<div className="fade-in">
+          <div className="page-title">All Clients</div>
+          <div className="page-sub">{total} businesses enrolled</div>
+          {bizList.map((b,i)=>(
+            <div key={i} style={{background:"var(--bg2)",border:"1px solid var(--border)",borderRadius:14,padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12,marginBottom:10,cursor:"pointer"}} onClick={()=>setSelected(b)}>
+              <div>
+                <div style={{fontSize:15,fontWeight:600}}>{b.name}</div>
+                <div style={{fontSize:12,color:"var(--text2)"}}>{b.email} · {b.createdAt}</div>
+              </div>
+              <div style={{display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
+                <div style={{textAlign:"center"}}><div style={{fontSize:18,fontWeight:800,color:"var(--green)"}}>{b.positivesSent}</div><div style={{fontSize:11,color:"var(--text2)"}}>Google</div></div>
+                <div style={{textAlign:"center"}}><div style={{fontSize:18,fontWeight:800,color:"var(--red)"}}>{b.feedbacks.length}</div><div style={{fontSize:11,color:"var(--text2)"}}>Private</div></div>
+                <span className="badge badge-gold">{b.plan.toUpperCase()}</span>
+              </div>
+            </div>
+          ))}
+        </div>}
+
+        {tab==="clients"&&selected&&<div className="fade-in">
+          <button onClick={()=>setSelected(null)} style={{background:"none",border:"none",color:"var(--text2)",cursor:"pointer",fontSize:14,marginBottom:20,fontFamily:"DM Sans,sans-serif"}}>← Back</button>
+          <div className="page-title">{selected.name}</div>
+          <div className="page-sub">{selected.email} · {selected.phone}</div>
+          <div className="stats-grid">
+            {[{label:"Plan",val:selected.plan.toUpperCase(),c:"gold"},{label:"Google Reviews",val:selected.positivesSent,c:"green"},{label:"Private Feedback",val:selected.feedbacks.length,c:"red"}].map((s,i)=>(
+              <div key={i} className="stat-card"><div className="stat-card-label">{s.label}</div><div className={`stat-card-num ${s.c}`}>{s.val}</div></div>
+            ))}
+          </div>
+          <div className="panel">
+            <div className="panel-title">💬 Their Feedbacks</div>
+            {selected.feedbacks.length===0?<div style={{color:"var(--text2)",fontSize:14}}>No negative feedback captured yet.</div>:selected.feedbacks.map((f,i)=>(
+              <div key={i} className="feedback-item" style={{marginBottom:10}}>
+                <div style={{display:"flex",gap:2,marginBottom:6}}>{[1,2,3,4,5].map(s=><span key={s} style={{opacity:s<=f.rating?1:0.2}}>⭐</span>)}</div>
+                <div style={{fontSize:14}}>"{f.message}"</div>
+                <div style={{fontSize:12,color:"var(--text2)",marginTop:4}}>{f.name} · {f.date}</div>
+              </div>
+            ))}
+          </div>
+        </div>}
+
+        {tab==="feedbacks"&&<div className="fade-in">
+          <div className="page-title">All Feedbacks</div>
+          <div className="page-sub">{totalFb} captured across all clients</div>
+          {bizList.map(b=>b.feedbacks.length>0&&(
+            <div key={b.id} style={{marginBottom:20}}>
+              <div style={{fontSize:13,fontWeight:700,color:"var(--text2)",marginBottom:8}}>🏢 {b.name}</div>
+              {b.feedbacks.map((f,i)=>(
+                <div key={i} className="feedback-item" style={{marginBottom:8}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:6,flexWrap:"wrap",gap:8}}>
+                    <div style={{display:"flex",gap:2}}>{[1,2,3,4,5].map(s=><span key={s} style={{fontSize:14,opacity:s<=f.rating?1:0.2}}>⭐</span>)}</div>
+                    <span style={{fontSize:12,color:"var(--text2)"}}>{f.name} · {f.date}</span>
+                  </div>
+                  <div style={{fontSize:14}}>"{f.message}"</div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>}
+
+        {tab==="revenue"&&<div className="fade-in">
+          <div className="page-title">Revenue Dashboard</div>
+          <div className="page-sub">Your ReviewShield MRR</div>
+          <div className="stats-grid">
+            {[{label:"Monthly Revenue",val:`₹${mrr.toLocaleString("en-IN")}`,c:"green"},{label:"Annual Run Rate",val:`₹${(mrr*12).toLocaleString("en-IN")}`,c:"gold"},{label:"Paying Clients",val:total,c:"gold"},{label:"Avg per Client",val:total>0?`₹${Math.round(mrr/total).toLocaleString("en-IN")}`:"₹0",c:"green"}].map((s,i)=>(
+              <div key={i} className="stat-card"><div className="stat-card-label">{s.label}</div><div className={`stat-card-num ${s.c}`}>{s.val}</div></div>
+            ))}
+          </div>
+          <div className="panel">
+            <div className="panel-title">🎯 Growth Targets</div>
+            {[{n:10,r:"₹24,990"},{n:25,r:"₹62,475"},{n:50,r:"₹1,24,950"},{n:100,r:"₹2,49,900"}].map((t,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:i<3?"1px solid var(--border)":"none"}}>
+                <span style={{fontSize:16}}>{total>=t.n?"✅":"⭕"}</span>
+                <div style={{flex:1}}><span style={{fontSize:14,fontWeight:600}}>{t.n} clients</span><span style={{fontSize:13,color:"var(--text2)",marginLeft:8}}>→ {t.r}/mo</span></div>
+                {total<t.n&&<span style={{fontSize:12,color:"var(--text2)"}}>{total}/{t.n}</span>}
+              </div>
+            ))}
+          </div>
+        </div>}
+
+        {tab==="whitelist"&&<div className="fade-in">
+          <div className="page-title">⭐ VIP Free Access</div>
+          <div className="page-sub">People here get full Pro features without paying.</div>
+          <div className="panel">
+            <div className="panel-title">➕ Grant Pro Access</div>
+            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+              <input className="form-input" style={{flex:1,minWidth:200}} placeholder="friend@gmail.com" value={newEmail} onChange={e=>setNewEmail(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&newEmail.trim()){setWhitelist(p=>[...p,newEmail.trim().toLowerCase()]);PRO_WHITELIST.push(newEmail.trim().toLowerCase());setNewEmail("");}}} />
+              <button onClick={()=>{if(newEmail.trim()){setWhitelist(p=>[...p,newEmail.trim().toLowerCase()]);PRO_WHITELIST.push(newEmail.trim().toLowerCase());setNewEmail("");}}} style={{padding:"12px 20px",background:"var(--gold)",color:"#0a0a0f",border:"none",borderRadius:12,fontWeight:700,cursor:"pointer",fontFamily:"DM Sans,sans-serif"}}>Grant Access</button>
+            </div>
+          </div>
+          <div className="panel">
+            <div className="panel-title">✅ Whitelisted ({whitelist.length})</div>
+            {whitelist.map((email,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 0",borderBottom:i<whitelist.length-1?"1px solid var(--border)":"none"}}>
+                <div>
+                  <span style={{fontSize:14,fontWeight:600}}>{email}</span>
+                  {email==="tarun@thedesignshore.com"&&<span className="badge badge-gold" style={{marginLeft:8}}>YOU</span>}
+                  <span className="badge badge-purple" style={{marginLeft:8}}>⭐ VIP PRO</span>
+                </div>
+                {email!=="tarun@thedesignshore.com"&&<button onClick={()=>setWhitelist(p=>p.filter(e=>e!==email))} style={{fontSize:12,padding:"5px 12px",background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.25)",color:"var(--red)",borderRadius:8,cursor:"pointer",fontFamily:"DM Sans,sans-serif"}}>Revoke</button>}
+              </div>
+            ))}
+          </div>
+        </div>}
+      </div>
+    </div>
+  );
+}
+
+// ── Legal pages ───────────────────────────────────────────────────────────────
+function LegalPage({title,setPage,children}){
+  return (
+    <div style={{minHeight:"100vh",background:"var(--bg)",padding:"100px 24px 60px",maxWidth:800,margin:"0 auto"}}>
+      <button onClick={()=>setPage("home")} style={{background:"none",border:"none",color:"var(--text2)",cursor:"pointer",fontSize:14,marginBottom:28,fontFamily:"DM Sans,sans-serif"}}>← Back</button>
+      <div style={{fontFamily:"Syne,sans-serif",fontSize:30,fontWeight:800,marginBottom:32}}>{title}</div>
+      {children}
+    </div>
+  );
+}
+
+// ── App ───────────────────────────────────────────────────────────────────────
+function App(){
+  const [page,setPage]=useState("home");
+  const [currentBiz,setCurrentBiz]=useState(null);
+  const [bizList,setBizList]=useState([DEMO_BIZ]);
+  const [dbConnected,setDbConnected]=useState(false);
+
+  useEffect(()=>{
+    if(SHEET_API_URL==="PASTE_YOUR_APPS_SCRIPT_URL_HERE")return;
+    Promise.all([
+      fetch(`${SHEET_API_URL}?action=getBusinesses`).then(r=>r.json()).catch(()=>({data:[]})),
+      fetch(`${SHEET_API_URL}?action=getFeedbacks`).then(r=>r.json()).catch(()=>({data:[]})),
+    ]).then(([bRes,fRes])=>{
+      const feedbacks=fRes.data||[];
+      const bizzes=(bRes.data||[]).map(b=>({...b,positivesSent:Number(b.positivesSent)||0,totalScans:Number(b.totalScans)||0,feedbacks:feedbacks.filter(f=>f.bizId===b.id).map(f=>({...f,rating:Number(f.rating),read:f.read===true||f.read==="TRUE"}))}));
+      const ids=bizzes.map(b=>b.id);
+      setBizList([DEMO_BIZ,...bizzes.filter(b=>b.id!==DEMO_BIZ.id)]);
+      setDbConnected(true);
+    }).catch(()=>{});
+  },[]);
+
+  const addFeedback=(bizId,fb)=>{
+    const biz=bizList.find(b=>b.id===bizId);
+    const newFb={id:Date.now(),bizId,bizName:biz?.name||"",...fb,date:new Date().toISOString().split("T")[0],read:false};
+    if(dbConnected)fetch(SHEET_API_URL,{method:"POST",body:JSON.stringify({action:"addFeedback",data:newFb})}).catch(()=>{});
+    setBizList(prev=>prev.map(b=>b.id===bizId?{...b,feedbacks:[...b.feedbacks,newFb]}:b));
+    if(currentBiz?.id===bizId)setCurrentBiz(prev=>({...prev,feedbacks:[...prev.feedbacks,newFb]}));
+  };
+
+  const addPositive=(bizId)=>{
+    if(dbConnected)fetch(SHEET_API_URL,{method:"POST",body:JSON.stringify({action:"incrementPositive",id:bizId})}).catch(()=>{});
+    setBizList(prev=>prev.map(b=>b.id===bizId?{...b,positivesSent:(b.positivesSent||0)+1}:b));
+    if(currentBiz?.id===bizId)setCurrentBiz(prev=>({...prev,positivesSent:(prev.positivesSent||0)+1}));
+  };
+
+  const showNav=!["dashboard","admin","admin-login","review-preview","demo-review","terms","privacy"].includes(page);
+
+  return (
+    <>
+      {showNav&&<Nav page={page} setPage={setPage} currentBiz={currentBiz} />}
+      {dbConnected&&<div style={{position:"fixed",bottom:12,left:12,zIndex:999,display:"flex",alignItems:"center",gap:6,background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.3)",borderRadius:100,padding:"4px 12px",fontSize:11,color:"#22c55e",fontFamily:"DM Sans,sans-serif"}}><div style={{width:6,height:6,borderRadius:"50%",background:"#22c55e"}} />Sheets live</div>}
+      {page==="home"&&<HomePage setPage={setPage} />}
+      {page==="register"&&<RegisterPage setPage={setPage} setCurrentBiz={setCurrentBiz} setBizList={setBizList} />}
+      {page==="login"&&<LoginPage setPage={setPage} setCurrentBiz={setCurrentBiz} bizList={bizList} />}
+      {page==="dashboard"&&currentBiz&&<Dashboard currentBiz={currentBiz} setPage={setPage} setCurrentBiz={setCurrentBiz} />}
+      {page==="review-preview"&&<ReviewPage bizId={currentBiz?.id} bizList={bizList} addFeedback={addFeedback} addPositive={addPositive} setPage={setPage} />}
+      {page==="demo-review"&&<ReviewPage isDemo bizList={bizList} addFeedback={addFeedback} addPositive={addPositive} setPage={setPage} />}
+      {page==="admin-login"&&<AdminLogin setPage={setPage} />}
+      {page==="admin"&&<AdminDashboard bizList={bizList} setPage={setPage} />}
+      {page==="terms"&&<LegalPage title="Terms of Service" setPage={setPage}><p style={{color:"var(--text2)",lineHeight:1.8}}>By using ReviewShield you agree to use the service lawfully. Payments are processed via Razorpay. Cancel anytime. Contact: legal@reviewshield.in</p></LegalPage>}
+      {page==="privacy"&&<LegalPage title="Privacy Policy" setPage={setPage}><p style={{color:"var(--text2)",lineHeight:1.8}}>We collect business registration info and customer feedback. We never sell your data. Feedback is stored privately and only visible to the business owner. Contact: privacy@reviewshield.in</p></LegalPage>}
+      {page==="home"&&<div style={{position:"fixed",bottom:16,right:16,opacity:0,width:40,height:40,cursor:"pointer"}} onClick={()=>setPage("admin-login")} />}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
 </html>
