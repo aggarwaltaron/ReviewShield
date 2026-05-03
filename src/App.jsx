@@ -9,7 +9,7 @@ const SheetDB = {
   // Load all businesses from sheet
   async getBusinesses() {
     try {
-      const res = await fetch(`${SHEET_API_URL}?action=getBusinesses`);
+      const res = await fetch(`${https://script.google.com/macros/s/AKfycbwmDWqHWFi9mpQN_hiq2464XTy_uJGh_WiubzieB_XGqr99-QjXr46xlR5JPIXDO_tuWA/exec}?action=getBusinesses`);
       const json = await res.json();
       return json.data || [];
     } catch (e) { console.error("SheetDB.getBusinesses failed:", e); return []; }
