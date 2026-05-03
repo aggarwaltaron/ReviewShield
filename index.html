@@ -271,9 +271,21 @@ function RegisterPage({setPage,setCurrentBiz,setBizList}){
       setNewBiz(biz);
       setCurrentBiz(biz);
       setBizList([...ALL_BUSINESSES]);
-      // Save to sheet
+      // Save to sheet via GET (more reliable than POST due to CORS)
       if(SHEET_API_URL!=="PASTE_YOUR_APPS_SCRIPT_URL_HERE"){
-        fetch(SHEET_API_URL,{method:"POST",body:JSON.stringify({action:"addBusiness",data:biz})}).catch(()=>{});
+        const params = new URLSearchParams({
+          action: "addBusiness",
+          id: biz.id,
+          name: biz.name,
+          email: biz.email,
+          phone: biz.phone || "",
+          plan: biz.plan,
+          paymentStatus: "pending",
+          googleReviewUrl: biz.googleReviewUrl || "",
+          createdAt: biz.createdAt,
+          password: biz.password || "",
+        });
+        fetch(SHEET_API_URL+"?"+params.toString()).catch(()=>{});
       }
       setLoading(false);
       setStep("payment");
@@ -757,19 +769,27 @@ function ClientDetailView({selected, setSelected}) {
   const handleEnable = () => {
     if (!confirm("Enable " + selected.name + "? They will get full dashboard access.")) return;
     if (SHEET_API_URL !== "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
-      fetch(SHEET_API_URL, {method:"POST", mode:"no-cors", body: JSON.stringify({action:"setPaymentStatus", id: selected.id, status:"active"})}).catch(()=>{});
+      const url = SHEET_API_URL + "?action=setPaymentStatus&id=" + encodeURIComponent(selected.id) + "&status=active";
+      fetch(url).then(r=>r.json()).then(()=>{
+        setSelected({...selected, paymentStatus: "active"});
+        alert("✅ Account enabled! They can now login. (Refresh page in 2 sec to confirm)");
+      }).catch(err=>alert("Error: "+err.message));
+    } else {
+      setSelected({...selected, paymentStatus: "active"});
     }
-    setSelected({...selected, paymentStatus: "active"});
-    alert("✅ Account enabled! They can now login.");
   };
 
   const handleDisable = () => {
     if (!confirm("Disable " + selected.name + "? They will lose dashboard access.")) return;
     if (SHEET_API_URL !== "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
-      fetch(SHEET_API_URL, {method:"POST", mode:"no-cors", body: JSON.stringify({action:"setPaymentStatus", id: selected.id, status:"pending"})}).catch(()=>{});
+      const url = SHEET_API_URL + "?action=setPaymentStatus&id=" + encodeURIComponent(selected.id) + "&status=pending";
+      fetch(url).then(r=>r.json()).then(()=>{
+        setSelected({...selected, paymentStatus: "pending"});
+        alert("Account disabled.");
+      }).catch(err=>alert("Error: "+err.message));
+    } else {
+      setSelected({...selected, paymentStatus: "pending"});
     }
-    setSelected({...selected, paymentStatus: "pending"});
-    alert("Account disabled.");
   };
 
   const handleDelete = () => {
@@ -777,11 +797,14 @@ function ClientDetailView({selected, setSelected}) {
     const conf = prompt("Type the client's email to confirm deletion:");
     if (conf !== selected.email) { alert("Email didn't match. Deletion cancelled."); return; }
     if (SHEET_API_URL !== "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
-      fetch(SHEET_API_URL, {method:"POST", mode:"no-cors", body: JSON.stringify({action:"deleteBusiness", id: selected.id})}).catch(()=>{});
+      const url = SHEET_API_URL + "?action=deleteBusiness&id=" + encodeURIComponent(selected.id);
+      fetch(url).then(r=>r.json()).then(()=>{
+        alert("✅ " + selected.name + " has been deleted from your Sheet.");
+        setSelected(null);
+      }).catch(err=>alert("Error: "+err.message));
+    } else {
+      setSelected(null);
     }
-    alert("✅ " + selected.name + " has been deleted.");
-    setSelected(null);
-    setTimeout(()=>window.location.reload(), 500);
   };
 
   return (
@@ -1086,13 +1109,19 @@ function App(){
   const addFeedback=(bizId,fb)=>{
     const biz=bizList.find(b=>b.id===bizId);
     const newFb={id:Date.now(),bizId,bizName:biz?.name||"",...fb,date:new Date().toISOString().split("T")[0],read:false};
-    if(dbConnected)fetch(SHEET_API_URL,{method:"POST",body:JSON.stringify({action:"addFeedback",data:newFb})}).catch(()=>{});
+    if(dbConnected){
+      const params = new URLSearchParams({
+        action:"addFeedback", id:newFb.id, bizId, bizName: biz?.name||"",
+        rating:newFb.rating, message:newFb.message, name:newFb.name, date:newFb.date,
+      });
+      fetch(SHEET_API_URL+"?"+params.toString()).catch(()=>{});
+    }
     setBizList(prev=>prev.map(b=>b.id===bizId?{...b,feedbacks:[...b.feedbacks,newFb]}:b));
     if(currentBiz?.id===bizId)setCurrentBiz(prev=>({...prev,feedbacks:[...prev.feedbacks,newFb]}));
   };
 
   const addPositive=(bizId)=>{
-    if(dbConnected)fetch(SHEET_API_URL,{method:"POST",body:JSON.stringify({action:"incrementPositive",id:bizId})}).catch(()=>{});
+    if(dbConnected)fetch(SHEET_API_URL+"?action=incrementPositive&id="+encodeURIComponent(bizId)).catch(()=>{});
     setBizList(prev=>prev.map(b=>b.id===bizId?{...b,positivesSent:(b.positivesSent||0)+1}:b));
     if(currentBiz?.id===bizId)setCurrentBiz(prev=>({...prev,positivesSent:(prev.positivesSent||0)+1}));
   };
