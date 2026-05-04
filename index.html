@@ -662,6 +662,52 @@ function Dashboard({currentBiz,setPage,setCurrentBiz}){
               <div style={{fontSize:12,color:"var(--text2)",marginTop:6}}>Search your business on Google → click "Write a review" → copy the URL</div>
               <button className="copy-btn" style={{marginTop:12}} onClick={()=>window.open(biz.googleReviewUrl,"_blank")}>🔗 Test Link</button>
             </div>
+
+            <div className="panel">
+              <div className="panel-title">
+                🎨 Branding {biz.plan!=="agency" && !isWhitelisted(biz.email) && <span className="badge badge-purple" style={{marginLeft:8}}>AGENCY</span>}
+              </div>
+              {(biz.plan==="agency" || isWhitelisted(biz.email)) ? (
+                <>
+                  <div style={{fontSize:13,color:"var(--text2)",marginBottom:10}}>Upload your logo URL to show on the customer review page (replaces ReviewShield branding completely).</div>
+                  <input className="form-input" value={biz.logoUrl||""} onChange={e=>setBiz({...biz,logoUrl:e.target.value})} placeholder="https://yourdomain.com/logo.png" />
+                  <div style={{fontSize:11,color:"var(--text2)",marginTop:6}}>📌 Recommended: PNG with transparent background, max 400x200px. Host on your website or Imgur.</div>
+                  <button className="copy-btn" style={{marginTop:12}} onClick={()=>{
+                    if(SHEET_API_URL!=="PASTE_YOUR_APPS_SCRIPT_URL_HERE" && biz.logoUrl){
+                      fetch(SHEET_API_URL+"?action=updateBusiness&id="+encodeURIComponent(biz.id)+"&logoUrl="+encodeURIComponent(biz.logoUrl)).catch(()=>{});
+                      alert("✅ Logo saved!");
+                    }
+                  }}>💾 Save Logo</button>
+                  {biz.logoUrl && (
+                    <div style={{marginTop:14,padding:14,background:"var(--bg3)",borderRadius:10,textAlign:"center"}}>
+                      <div style={{fontSize:11,color:"var(--text2)",marginBottom:8,textTransform:"uppercase",fontWeight:600}}>Preview</div>
+                      <img src={biz.logoUrl} alt="Your logo" style={{maxWidth:140,maxHeight:80,objectFit:"contain"}} onError={(e)=>{e.target.style.display="none";e.target.parentElement.innerHTML+='<div style="color:var(--red);font-size:13px">⚠️ Image not loading. Check URL.</div>';}} />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div style={{fontSize:13,color:"var(--text2)",marginBottom:14,lineHeight:1.6}}>
+                    Show <strong style={{color:"var(--text)"}}>your own logo</strong> on the customer review page instead of ReviewShield branding. Available on the <strong style={{color:"#a78bfa"}}>Agency plan</strong>.
+                  </div>
+                  <div style={{display:"flex",gap:10,marginBottom:14,flexWrap:"wrap"}}>
+                    <div style={{flex:1,minWidth:150,padding:14,background:"rgba(245,200,66,0.05)",border:"1px solid var(--border)",borderRadius:10}}>
+                      <div style={{fontSize:11,color:"var(--text2)",marginBottom:4,fontWeight:600}}>YOUR PLAN</div>
+                      <div style={{fontWeight:700,color:"var(--gold)"}}>{biz.plan?.toUpperCase()}</div>
+                      <div style={{fontSize:12,color:"var(--text2)",marginTop:6}}>Shows ReviewShield branding</div>
+                    </div>
+                    <div style={{flex:1,minWidth:150,padding:14,background:"rgba(168,85,247,0.05)",border:"1px solid rgba(168,85,247,0.3)",borderRadius:10}}>
+                      <div style={{fontSize:11,color:"#a78bfa",marginBottom:4,fontWeight:600}}>UPGRADE TO AGENCY</div>
+                      <div style={{fontWeight:700,color:"#a78bfa"}}>₹7,999/mo</div>
+                      <div style={{fontSize:12,color:"var(--text2)",marginTop:6}}>Your logo + custom colors</div>
+                    </div>
+                  </div>
+                  <button onClick={()=>setTab("billing")} style={{padding:"10px 20px",background:"rgba(168,85,247,0.1)",border:"1px solid #a78bfa",color:"#a78bfa",borderRadius:10,fontWeight:600,cursor:"pointer",fontFamily:"DM Sans,sans-serif",fontSize:13}}>
+                    🚀 Upgrade to Agency
+                  </button>
+                </>
+              )}
+            </div>
             <div className="panel">
               <div className="panel-title">⚙️ Review Threshold</div>
               <div style={{fontSize:13,color:"var(--text2)",marginBottom:12}}>Customers who rate {settings.threshold}★+ will be sent to Google.</div>
@@ -755,7 +801,30 @@ function ReviewPage({bizId,bizList,addFeedback,addPositive,isDemo,setPage}){
     <div className="review-page">
       {setPage&&<div style={{position:"fixed",top:16,left:16,zIndex:1000}}><button className="copy-btn" onClick={()=>setPage(isDemo?"home":"dashboard")}>← Back</button></div>}
       <div className="review-card fade-in">
-        <div style={{fontFamily:"Syne,sans-serif",fontSize:20,fontWeight:800,color:"var(--gold)",marginBottom:28}}>Review<span style={{color:"var(--text)"}}>Shield</span></div>
+        {/* Smart branding based on plan */}
+        {(() => {
+          const isPro = biz?.plan === "pro" || biz?.plan === "agency" || isDemo;
+          const isAgency = biz?.plan === "agency" || isDemo;
+          if(isAgency && biz?.logoUrl){
+            // Agency: Show logo
+            return (
+              <div style={{marginBottom:28,textAlign:"center"}}>
+                <img src={biz.logoUrl} alt={biz.name} style={{maxWidth:140,maxHeight:80,objectFit:"contain",margin:"0 auto"}} onError={(e)=>{e.target.style.display="none";}} />
+              </div>
+            );
+          } else if(isPro){
+            // Pro: Show business name in gold (no ReviewShield branding)
+            return (
+              <div style={{fontFamily:"Syne,sans-serif",fontSize:22,fontWeight:800,color:"var(--gold)",marginBottom:28,textAlign:"center"}}>
+                {biz?.name || "Welcome"}
+              </div>
+            );
+          }
+          // Starter: Default ReviewShield branding
+          return (
+            <div style={{fontFamily:"Syne,sans-serif",fontSize:20,fontWeight:800,color:"var(--gold)",marginBottom:28}}>Review<span style={{color:"var(--text)"}}>Shield</span></div>
+          );
+        })()}
         {step==="rate"&&<>
           <div style={{fontFamily:"Syne,sans-serif",fontSize:24,fontWeight:800,marginBottom:8}}>{biz?.name}</div>
           <div style={{color:"var(--text2)",fontSize:15,marginBottom:32,lineHeight:1.5}}>How was your experience with us?</div>
@@ -787,6 +856,13 @@ function ReviewPage({bizId,bizList,addFeedback,addPositive,isDemo,setPage}){
           <div style={{color:"var(--text2)",fontSize:14,lineHeight:1.6}}>Thank you. Our team will look into this and work to improve your experience.</div>
           <div style={{marginTop:16,padding:"12px 20px",background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:12,fontSize:13,color:"var(--green)"}}>✓ Feedback privately shared with the team.</div>
         </div>}
+
+        {/* Powered by footer - only for Pro tier (Agency = no branding at all) */}
+        {(biz?.plan === "pro" && !isDemo) && (
+          <div style={{marginTop:32,paddingTop:16,borderTop:"1px solid var(--border)",fontSize:11,color:"var(--text2)",opacity:0.6,textAlign:"center"}}>
+            Powered by <span style={{color:"var(--gold)",fontWeight:600}}>ReviewShield</span>
+          </div>
+        )}
       </div>
     </div>
   );
