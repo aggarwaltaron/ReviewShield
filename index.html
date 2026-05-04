@@ -713,9 +713,11 @@ function ReviewPage({bizId,bizList,addFeedback,addPositive,isDemo,setPage}){
   const handleRate=()=>{
     if(!rating)return;
     if(rating>=THRESHOLD){
-      setStep("done-positive");
+      // Track positive in background (no await needed)
       if(!isDemo&&addPositive)addPositive(biz.id);
-      setTimeout(()=>window.open(biz.googleReviewUrl,"_blank"),1500);
+      // Redirect immediately on user click - prevents popup blocker
+      // Using window.location.href works 100% on mobile (no popup blocker issues)
+      window.location.href = biz.googleReviewUrl;
     } else setStep("feedback");
   };
 
