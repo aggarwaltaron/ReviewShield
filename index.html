@@ -134,7 +134,7 @@ textarea.form-input{resize:vertical;min-height:110px}
 <script type="text/babel">
 const { useState, useEffect } = React;
 
-const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxKr3tjJN4KTxbhx1OmWKS5_HT3817wh_dmudwpPEsDJbZW4bku4z6GRgWlqHCrK9DiKA/exec";
+const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxjaLaxPUdhKL_mGZLW0yi0TYTnIG8RDkwUUDM1TNEP5l1_vnawf9JYmKOTcIX3sVuKhg/exec";
 const ADMIN_PASSWORD = "TDS@ReviewShield2026";
 const PRO_WHITELIST = ["tarun@thedesignshore.com"];
 const isWhitelisted = (email) => PRO_WHITELIST.includes((email||"").toLowerCase());
@@ -674,7 +674,35 @@ function Dashboard({currentBiz,setPage,setCurrentBiz}){
 
 // ── Review Page (customer facing) ─────────────────────────────────────────────
 function ReviewPage({bizId,bizList,addFeedback,addPositive,isDemo,setPage}){
-  const biz=isDemo?{id:"demo",name:"Spice Garden Restaurant",googleReviewUrl:"https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4"}:bizList.find(b=>b.id===bizId)||bizList[0];
+  const biz=isDemo?{id:"demo",name:"Spice Garden Restaurant",googleReviewUrl:"https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4"}:bizList.find(b=>b.id===bizId);
+
+  // If we have a bizId but business isn't loaded yet, show loading
+  if(!isDemo && bizId && !biz && bizList.length===0){
+    return (
+      <div className="review-page">
+        <div className="review-card fade-in">
+          <div style={{fontFamily:"Syne,sans-serif",fontSize:20,fontWeight:800,color:"var(--gold)",marginBottom:28}}>Review<span style={{color:"var(--text)"}}>Shield</span></div>
+          <div className="spinner" />
+          <div style={{color:"var(--text2)",fontSize:14,marginTop:8}}>Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // If business genuinely not found
+  if(!isDemo && bizId && !biz && bizList.length>0){
+    return (
+      <div className="review-page">
+        <div className="review-card fade-in">
+          <div style={{fontFamily:"Syne,sans-serif",fontSize:20,fontWeight:800,color:"var(--gold)",marginBottom:28}}>Review<span style={{color:"var(--text)"}}>Shield</span></div>
+          <div style={{fontSize:48,marginBottom:12}}>🤔</div>
+          <div style={{fontFamily:"Syne,sans-serif",fontSize:22,fontWeight:800,marginBottom:8}}>Business Not Found</div>
+          <div style={{color:"var(--text2)",fontSize:14}}>This QR code may have been deactivated.</div>
+        </div>
+      </div>
+    );
+  }
+
   const [step,setStep]=useState("rate");
   const [rating,setRating]=useState(0);
   const [hovered,setHovered]=useState(0);
@@ -1087,7 +1115,21 @@ function LegalPage({title,setPage,children}){
 
 // ── App ───────────────────────────────────────────────────────────────────────
 function App(){
-  const [page,setPage]=useState("home");
+  // Parse URL on first load — detect /r/biz_id from QR scans
+  const getInitialPage = () => {
+    const path = window.location.pathname;
+    if (path.startsWith("/r/")) return "qr-review";
+    if (path === "/admin" || path === "/admin/") return "admin-login";
+    return "home";
+  };
+  const getQrBizId = () => {
+    const path = window.location.pathname;
+    if (path.startsWith("/r/")) return path.replace("/r/", "").replace(/\/$/, "");
+    return null;
+  };
+
+  const [page,setPage]=useState(getInitialPage());
+  const [qrBizId] = useState(getQrBizId());
   const [currentBiz,setCurrentBiz]=useState(null);
   const [bizList,setBizList]=useState([]);
   const [dbConnected,setDbConnected]=useState(false);
@@ -1126,7 +1168,7 @@ function App(){
     if(currentBiz?.id===bizId)setCurrentBiz(prev=>({...prev,positivesSent:(prev.positivesSent||0)+1}));
   };
 
-  const showNav=!["dashboard","admin","admin-login","review-preview","demo-review","terms","privacy"].includes(page);
+  const showNav=!["dashboard","admin","admin-login","review-preview","demo-review","qr-review","terms","privacy"].includes(page);
 
   return (
     <>
@@ -1137,6 +1179,7 @@ function App(){
       {page==="login"&&<LoginPage setPage={setPage} setCurrentBiz={setCurrentBiz} bizList={bizList} />}
       {page==="dashboard"&&currentBiz&&<Dashboard currentBiz={currentBiz} setPage={setPage} setCurrentBiz={setCurrentBiz} />}
       {page==="review-preview"&&<ReviewPage bizId={currentBiz?.id} bizList={bizList} addFeedback={addFeedback} addPositive={addPositive} setPage={setPage} />}
+      {page==="qr-review"&&<ReviewPage bizId={qrBizId} bizList={bizList} addFeedback={addFeedback} addPositive={addPositive} />}
       {page==="demo-review"&&<ReviewPage isDemo bizList={bizList} addFeedback={addFeedback} addPositive={addPositive} setPage={setPage} />}
       {page==="admin-login"&&<AdminLogin setPage={setPage} />}
       {page==="admin"&&<AdminDashboard bizList={bizList} setPage={setPage} />}
