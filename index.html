@@ -270,20 +270,22 @@ function RegisterPage({setPage,setCurrentBiz,setBizList}){
 
     // Save to sheet first via GET, THEN proceed
     if(SHEET_API_URL!=="PASTE_YOUR_APPS_SCRIPT_URL_HERE"){
-      const params = new URLSearchParams({
-        action: "addBusiness",
-        id: biz.id,
-        name: biz.name,
-        email: biz.email,
-        phone: biz.phone || "",
-        plan: biz.plan,
-        paymentStatus: "pending",
-        googleReviewUrl: biz.googleReviewUrl || "",
-        createdAt: biz.createdAt,
-        password: biz.password || "",
-      });
+      // Build URL manually with explicit encoding for each field
+      const url = SHEET_API_URL + "?" + 
+        "action=addBusiness" +
+        "&id=" + encodeURIComponent(biz.id) +
+        "&name=" + encodeURIComponent(biz.name) +
+        "&email=" + encodeURIComponent(biz.email) +
+        "&phone=" + encodeURIComponent(biz.phone || "") +
+        "&plan=" + encodeURIComponent(biz.plan) +
+        "&paymentStatus=pending" +
+        "&googleReviewUrl=" + encodeURIComponent(biz.googleReviewUrl || "") +
+        "&createdAt=" + encodeURIComponent(biz.createdAt) +
+        "&password=" + encodeURIComponent(biz.password || "");
 
-      fetch(SHEET_API_URL+"?"+params.toString())
+      console.log("Signup URL:", url);
+
+      fetch(url)
         .then(r => r.json())
         .then(res => {
           console.log("Signup save result:", res);
