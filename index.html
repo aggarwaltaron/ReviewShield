@@ -265,31 +265,55 @@ function RegisterPage({setPage,setCurrentBiz,setBizList}){
   const handleCreate=()=>{
     if(!form.name||!form.email||!form.business){alert("Please fill name, email and business name.");return;}
     setLoading(true);
-    setTimeout(()=>{
-      const biz={id:"biz_"+Date.now(),name:form.business,email:form.email,phone:form.phone,password:form.password||"reviewshield123",googleReviewUrl:form.googleUrl||"https://search.google.com/local/writereview?placeid=PASTE_YOUR_PLACE_ID",plan:form.plan,paymentStatus:"pending",createdAt:new Date().toISOString().split("T")[0],feedbacks:[],positivesSent:0,totalScans:0};
+
+    const biz={id:"biz_"+Date.now(),name:form.business,email:form.email,phone:form.phone,password:form.password||"reviewshield123",googleReviewUrl:form.googleUrl||"https://search.google.com/local/writereview?placeid=PASTE_YOUR_PLACE_ID",plan:form.plan,paymentStatus:"pending",createdAt:new Date().toISOString().split("T")[0],feedbacks:[],positivesSent:0,totalScans:0};
+
+    // Save to sheet first via GET, THEN proceed
+    if(SHEET_API_URL!=="PASTE_YOUR_APPS_SCRIPT_URL_HERE"){
+      const params = new URLSearchParams({
+        action: "addBusiness",
+        id: biz.id,
+        name: biz.name,
+        email: biz.email,
+        phone: biz.phone || "",
+        plan: biz.plan,
+        paymentStatus: "pending",
+        googleReviewUrl: biz.googleReviewUrl || "",
+        createdAt: biz.createdAt,
+        password: biz.password || "",
+      });
+
+      fetch(SHEET_API_URL+"?"+params.toString())
+        .then(r => r.json())
+        .then(res => {
+          console.log("Signup save result:", res);
+          if(res.success && res.data && !res.data.error){
+            // Saved successfully
+            ALL_BUSINESSES.push(biz);
+            setNewBiz(biz);
+            setCurrentBiz(biz);
+            setBizList([...ALL_BUSINESSES]);
+            setLoading(false);
+            setStep("payment");
+          } else {
+            setLoading(false);
+            alert("Couldn't save your account. Error: " + JSON.stringify(res.data || res));
+          }
+        })
+        .catch(err => {
+          console.error("Signup error:", err);
+          setLoading(false);
+          alert("Network error. Please check your connection and try again.\n\nError: " + err.message);
+        });
+    } else {
+      // Local-only fallback
       ALL_BUSINESSES.push(biz);
       setNewBiz(biz);
       setCurrentBiz(biz);
       setBizList([...ALL_BUSINESSES]);
-      // Save to sheet via GET (more reliable than POST due to CORS)
-      if(SHEET_API_URL!=="PASTE_YOUR_APPS_SCRIPT_URL_HERE"){
-        const params = new URLSearchParams({
-          action: "addBusiness",
-          id: biz.id,
-          name: biz.name,
-          email: biz.email,
-          phone: biz.phone || "",
-          plan: biz.plan,
-          paymentStatus: "pending",
-          googleReviewUrl: biz.googleReviewUrl || "",
-          createdAt: biz.createdAt,
-          password: biz.password || "",
-        });
-        fetch(SHEET_API_URL+"?"+params.toString()).catch(()=>{});
-      }
       setLoading(false);
       setStep("payment");
-    },800);
+    }
   };
 
   const selectedPlan=PLANS.find(p=>p.id===form.plan);
